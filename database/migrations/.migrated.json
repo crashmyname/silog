@@ -1,0 +1,12 @@
+[
+    "2025_06_30_131244_create_user_table.php",
+    "2026_04_23_093908_create_jobs_table.php",
+    "2026_10_08_152334_create_category_table.php",
+    "2026_10_08_152340_create_document_table.php",
+    "2026_10_08_155951_create_vendor_table.php",
+    "2026_10_08_160128_create_drivers_table.php",
+    "2026_10_08_160158_create_vehicles_table.php",
+    "2026_10_08_160213_create_warehouses_table.php",
+    "2026_10_08_160222_create_routes_table.php",
+    "2026_10_08_160233_create_customers_table.php"
+]

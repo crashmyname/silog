@@ -1,0 +1,48 @@
+<?php
+
+use Bpjs\Framework\Helpers\SchemaBuilder;
+use Bpjs\Framework\Helpers\Database;
+
+class CreateWarehousesTable
+{
+    public function up(): void
+    {
+        $pdo = Database::connection();
+        $table = new SchemaBuilder('warehouses');
+        
+        //  Define columns here
+        $table->id();
+        $table->string('name')->notNullable();
+        $table->string('slug')->unique();
+        $table->text('description')->nullable();
+        $table->boolean('is_active')->default(1);
+        $table->timestamps();
+        $table->softDeletes();
+        
+        //  Add indexes
+        $table->index(['name', 'slug']);
+        
+        $sql = $table->buildCreateSQL();
+        
+        try {
+            $pdo->exec($sql);
+            echo " Table 'warehouses' created successfully\n";
+        } catch (\PDOException $e) {
+            echo " Failed to create table: " . $e->getMessage() . "\n";
+            echo " SQL: " . $sql . "\n";
+        }
+    }
+
+    public function down(): void
+    {
+        $pdo = Database::connection();
+        $table = new SchemaBuilder('warehouses');
+        
+        try {
+            $pdo->exec($table->buildDropSQL());
+            echo " Table 'warehouses' dropped successfully\n";
+        } catch (\PDOException $e) {
+            echo " Failed to drop table: " . $e->getMessage() . "\n";
+        }
+    }
+}
