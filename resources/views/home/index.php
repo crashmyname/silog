@@ -759,7 +759,7 @@ html[data-theme="light"] .pdf-modal{
       <div class="logo"><i class="fa-solid fa-truck-fast"></i></div>
       <div>
         <h1>LogiBoard</h1>
-        <p>Papan Informasi Logistik · Gudang Utama Cikarang</p>
+        <p>Papan Informasi Logistik · PT Indonesia Stanley Electric</p>
       </div>
     </div>
     <div class="top-right">
