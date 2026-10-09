@@ -288,16 +288,32 @@ body{
 
 <script>
 /* ============================================================
-   CONFIG — sesuai route BPJS Anda
+   BASE PATH DETECTION
    ============================================================ */
-const LOGIN_URL = '/silog/auth/login';   // ← sesuaikan route Anda
+const BASE = (function () {
+  const path = window.location.pathname;
+  const idx  = path.lastIndexOf('/');
+  if (idx === -1) return '';
+  let base = path.substring(0, idx);
+  if (base.endsWith('/index.php')) base = base.replace(/\/index\.php$/, '');
+  return base;
+})();
+
+const LOGIN_URL = BASE + '/auth/login';
+const ADMIN_URL = BASE + '/admin';
 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+console.log('[Login] BASE:', BASE);
+console.log('[Login] LOGIN_URL:', LOGIN_URL);
+console.log('[Login] ADMIN_URL:', ADMIN_URL);
 
 const form  = document.getElementById('loginForm');
 const btn   = document.getElementById('loginBtn');
 const errBx = document.getElementById('errorBox');
 
-/* Toggle show/hide password */
+/* ============================================================
+   TOGGLE PASSWORD
+   ============================================================ */
 document.getElementById('togglePass').addEventListener('click', function () {
   const inp = document.getElementById('password');
   const ic  = this.querySelector('i');
@@ -310,7 +326,9 @@ document.getElementById('togglePass').addEventListener('click', function () {
   }
 });
 
-/* Submit */
+/* ============================================================
+   SUBMIT LOGIN
+   ============================================================ */
 form.addEventListener('submit', async function (e) {
   e.preventDefault();
   errBx.classList.remove('show');
@@ -325,6 +343,8 @@ form.addEventListener('submit', async function (e) {
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Memeriksa…</span>';
 
+  let redirected = false;
+
   try {
     const res = await fetch(LOGIN_URL, {
       method: 'POST',
@@ -332,48 +352,64 @@ form.addEventListener('submit', async function (e) {
         'Content-Type': 'application/x-www-form-urlencoded',
         'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-TOKEN': CSRF,
-        'Accept': 'application/json',
+        'Accept': 'application/json, text/html',
       },
       body: new URLSearchParams({ username, password }),
       credentials: 'same-origin',
     });
 
-    /* Parse fleksibel — beberapa backend return JSON, sebagian redirect HTML */
+    console.log('[Login] status:', res.status, 'redirected:', res.redirected, 'url:', res.url);
+
+    /* Coba parse JSON kalau content-type JSON */
     let json = null;
     const ct = res.headers.get('content-type') || '';
     if (ct.includes('application/json')) {
       try { json = await res.json(); } catch (_) {}
     }
+    console.log('[Login] response:', json);
 
-    /* Sukses: kalau ada redirect di JSON */
-    if (res.ok && json && json.redirect) {
-      btn.innerHTML = '<i class="fa-solid fa-circle-check"></i><span>Berhasil! Mengalihkan…</span>';
-      setTimeout(() => { window.location.href = json.redirect; }, 300);
+    /* ==================================================
+       GAGAL
+       ================================================== */
+    if (!res.ok) {
+      const msg = json?.errors
+        ? Object.values(json.errors)[0]
+        : (json?.message || `Login gagal (HTTP ${res.status}).`);
+      showError(msg);
       return;
     }
 
-    /* Sukses tapi tidak ada JSON — cek apakah di-redirect (opaque) */
-    if (res.redirected) {
-      window.location.href = res.url;
-      return;
-    }
+    /* ==================================================
+       SUKSES — semua jalur di bawah ini akan redirect
+       ================================================== */
 
-    /* Sukses tanpa redirect → langsung ke /admin */
-    if (res.ok && !json) {
-      window.location.href = '/silog/admin';
-      return;
-    }
+    /* Prioritas 1: server kasih URL redirect eksplisit */
+    const target =
+      json?.redirect ||
+      json?.url ||
+      json?.location ||
+      (res.redirected ? res.url : null) ||
+      ADMIN_URL;
 
-    /* Gagal */
-    const msg = json?.errors
-      ? Object.values(json.errors)[0]
-      : (json?.message || 'Username atau password salah.');
-    showError(msg);
+    console.log('[Login] Redirecting to:', target);
+
+    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i><span>Berhasil! Mengalihkan…</span>';
+    redirected = true;
+
+    // Delay dikit biar user lihat konfirmasi
+    setTimeout(() => {
+      window.location.href = target;
+    }, 400);
+
   } catch (err) {
+    console.error('[Login] error:', err);
     showError('Terjadi kesalahan jaringan. Coba lagi.');
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i><span>Masuk</span>';
+    // Jangan reset tombol kalau sedang redirect
+    if (!redirected) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i><span>Masuk</span>';
+    }
   }
 });
 
