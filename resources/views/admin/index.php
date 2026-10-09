@@ -982,7 +982,7 @@ let state = {
   },
   settings: {
     siteName:'LogiBoard',
-    siteSubtitle:'Papan Informasi Logistik · Gudang Utama Cikarang'
+    siteSubtitle:'Papan Informasi Logistik · PT Indonesia Stanley Electric'
   }
 };
 
