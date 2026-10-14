@@ -7,57 +7,27 @@
 <meta name="csrf-token" content="<?= (new \Bpjs\Framework\Core\Request())->csrfToken() ?>" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 <style>
-/* ============================================================
-   THEME TOKENS
-   ============================================================ */
 :root{
-  --bg:#f7f8fb;
-  --panel:#ffffff;
-  --panel-2:#fbfcfe;
-  --side:#ffffff;
-  --line:#e6e9ef;
-  --line-soft:#eef1f6;
-  --text:#0f172a;
-  --text-2:#4b5568;
-  --text-3:#8b95a8;
-  --accent:#2563eb;
-  --accent-soft:#eff4ff;
-  --accent-line:#c7d6f7;
-  --green:#059669;
-  --green-soft:#ecfdf5;
-  --amber:#b45309;
-  --amber-soft:#fff8eb;
-  --red:#dc2626;
-  --red-soft:#fef2f2;
+  --bg:#f7f8fb; --panel:#ffffff; --panel-2:#fbfcfe; --side:#ffffff;
+  --line:#e6e9ef; --line-soft:#eef1f6;
+  --text:#0f172a; --text-2:#4b5568; --text-3:#8b95a8;
+  --accent:#2563eb; --accent-soft:#eff4ff; --accent-line:#c7d6f7;
+  --green:#059669; --green-soft:#ecfdf5;
+  --amber:#b45309; --amber-soft:#fff8eb;
+  --red:#dc2626; --red-soft:#fef2f2;
   --shadow:0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
-  --radius:10px;
-  --radius-sm:7px;
+  --radius:10px; --radius-sm:7px;
 }
 html[data-theme="dark"]{
-  --bg:#0b0f17;
-  --panel:#101623;
-  --panel-2:#0e1420;
-  --side:#0d131e;
-  --line:#1e2635;
-  --line-soft:#171e2b;
-  --text:#e9eefb;
-  --text-2:#95a1b8;
-  --text-3:#5f6b82;
-  --accent:#60a5fa;
-  --accent-soft:rgba(96,165,250,.12);
-  --accent-line:rgba(96,165,250,.3);
-  --green:#34d399;
-  --green-soft:rgba(52,211,153,.12);
-  --amber:#fbbf24;
-  --amber-soft:rgba(251,191,36,.12);
-  --red:#f87171;
-  --red-soft:rgba(248,113,113,.12);
+  --bg:#0b0f17; --panel:#101623; --panel-2:#0e1420; --side:#0d131e;
+  --line:#1e2635; --line-soft:#171e2b;
+  --text:#e9eefb; --text-2:#95a1b8; --text-3:#5f6b82;
+  --accent:#60a5fa; --accent-soft:rgba(96,165,250,.12); --accent-line:rgba(96,165,250,.3);
+  --green:#34d399; --green-soft:rgba(52,211,153,.12);
+  --amber:#fbbf24; --amber-soft:rgba(251,191,36,.12);
+  --red:#f87171; --red-soft:rgba(248,113,113,.12);
   --shadow:0 1px 2px rgba(0,0,0,.4);
 }
-
-/* ============================================================
-   BASE
-   ============================================================ */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -72,14 +42,8 @@ body{
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:2px solid var(--bg)}
 ::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
 
-/* ============================================================
-   SHELL
-   ============================================================ */
 .shell{display:flex;min-height:100vh}
 
-/* ============================================================
-   SIDEBAR
-   ============================================================ */
 .side{
   width:252px;flex:none;
   background:var(--side);
@@ -87,8 +51,7 @@ body{
   padding:18px 12px;
   display:flex;flex-direction:column;
   position:sticky;top:0;height:100vh;overflow-y:auto;
-  transition:transform .25s;
-  z-index:100;
+  transition:transform .25s;z-index:100;
 }
 .side::-webkit-scrollbar{width:5px}
 .side::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:none}
@@ -112,27 +75,29 @@ body{
   color:var(--text-3);padding:16px 12px 8px;
 }
 .nav{display:flex;flex-direction:column;gap:2px}
-.nav button{
+.nav button, .nav a{
   display:flex;align-items:center;gap:11px;
   padding:9px 12px;border-radius:7px;cursor:pointer;font-family:inherit;
   background:transparent;border:none;
   color:var(--text-2);font-size:13.5px;font-weight:500;
-  text-align:left;width:100%;
+  text-align:left;width:100%; text-decoration:none;
   transition:background .15s,color .15s;
 }
-.nav button i{font-size:13px;width:16px;text-align:center;opacity:.85;flex:none}
-.nav button:hover{background:var(--line-soft);color:var(--text)}
-.nav button.active{
-  background:var(--accent-soft);color:var(--accent);font-weight:600;
-}
+.nav button i, .nav a i{font-size:13px;width:16px;text-align:center;opacity:.85;flex:none}
+.nav button:hover, .nav a:hover{background:var(--line-soft);color:var(--text)}
+.nav button.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .nav button.active i{opacity:1}
-.nav button .cnt{
+.nav button .cnt, .nav a .cnt{
   margin-left:auto;font-size:11px;font-weight:600;
   padding:1px 7px;border-radius:99px;
   background:var(--line-soft);color:var(--text-3);
   font-variant-numeric:tabular-nums;
 }
 .nav button.active .cnt{background:var(--panel);color:var(--accent)}
+.nav .ext::after{
+  content:"\f35d";font-family:"Font Awesome 6 Free";font-weight:900;
+  font-size:9px;color:var(--text-3);margin-left:6px;
+}
 
 .side-foot{
   margin-top:auto;padding:16px 12px 4px;
@@ -145,11 +110,7 @@ body{
   box-shadow:0 0 0 3px var(--green-soft);
 }
 
-/* ============================================================
-   MAIN
-   ============================================================ */
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
-
 .topbar{
   height:60px;padding:0 26px;
   background:var(--panel);
@@ -181,7 +142,7 @@ body{
   padding:8px 14px;font-size:13px;font-weight:600;font-family:inherit;
   border-radius:7px;cursor:pointer;border:1px solid transparent;
   transition:background .15s,border-color .15s,color .15s,opacity .15s;
-  white-space:nowrap;
+  white-space:nowrap;text-decoration:none;
 }
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn-sm{padding:6px 11px;font-size:12.5px;border-radius:6px}
@@ -191,18 +152,12 @@ body{
 .btn-ghost:hover:not(:disabled){background:var(--line-soft);color:var(--text)}
 .btn-danger{background:var(--red-soft);color:var(--red)}
 .btn-danger:hover:not(:disabled){opacity:.85}
-.btn-icon{
-  padding:6px 8px;background:var(--panel);border:1px solid var(--line);
-  color:var(--text-2);
-}
+.btn-icon{padding:6px 8px;background:var(--panel);border:1px solid var(--line);color:var(--text-2)}
 .btn-icon:hover{background:var(--line-soft);color:var(--text)}
 .btn-icon.danger:hover{color:var(--red);border-color:var(--red);background:var(--red-soft)}
 
 .body{padding:26px;flex:1}
 
-/* ============================================================
-   PANEL
-   ============================================================ */
 .panel{display:none}
 .panel.active{display:block;animation:fade .3s ease both}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -211,23 +166,15 @@ body{
   margin-bottom:22px;display:flex;align-items:flex-start;justify-content:space-between;
   gap:16px;flex-wrap:wrap;
 }
-.page-head h1{
-  font-size:22px;font-weight:800;letter-spacing:-.5px;
-  color:var(--text);margin-bottom:4px;
-}
+.page-head h1{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text);margin-bottom:4px}
 .page-head p{font-size:13px;color:var(--text-2);line-height:1.55;max-width:640px}
 .page-head .btn{flex:none}
 
-/* Stats */
-.stats{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-  gap:14px;margin-bottom:22px;
-}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px}
 .stat{
   padding:16px 18px;border-radius:var(--radius);
   background:var(--panel);border:1px solid var(--line);
-  box-shadow:var(--shadow);
-  transition:transform .2s,border-color .2s;
+  box-shadow:var(--shadow);transition:transform .2s,border-color .2s;
 }
 .stat:hover{transform:translateY(-2px);border-color:var(--accent-line)}
 .stat .label{
@@ -240,11 +187,7 @@ body{
   letter-spacing:-.7px;margin-top:8px;font-variant-numeric:tabular-nums;
 }
 
-/* Card */
-.card{
-  background:var(--panel);border:1px solid var(--line);
-  border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;
-}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
 .card-head{
   padding:14px 18px;border-bottom:1px solid var(--line-soft);
   display:flex;align-items:center;gap:12px;flex-wrap:wrap;
@@ -255,9 +198,7 @@ body{
   padding:14px 18px;border-bottom:1px solid var(--line-soft);
   display:flex;align-items:center;gap:12px;flex-wrap:wrap;
 }
-.search{
-  position:relative;flex:1;min-width:200px;max-width:340px;
-}
+.search{position:relative;flex:1;min-width:200px;max-width:340px}
 .search i{
   position:absolute;left:12px;top:50%;transform:translateY(-50%);
   color:var(--text-3);font-size:12.5px;pointer-events:none;
@@ -274,20 +215,17 @@ body{
   box-shadow:0 0 0 3px var(--accent-soft);
 }
 
-/* Table */
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th{
   text-align:left;font-weight:600;font-size:11.5px;letter-spacing:.4px;
   text-transform:uppercase;color:var(--text-3);
   padding:11px 18px;background:var(--panel-2);
-  border-bottom:1px solid var(--line);
-  white-space:nowrap;
+  border-bottom:1px solid var(--line);white-space:nowrap;
 }
 tbody td{
   padding:13px 18px;color:var(--text-2);
-  border-bottom:1px solid var(--line-soft);
-  vertical-align:middle;
+  border-bottom:1px solid var(--line-soft);vertical-align:middle;
 }
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--panel-2)}
@@ -299,8 +237,7 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
 .tag{
   display:inline-flex;align-items:center;gap:5px;
   font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;
-  background:var(--line-soft);color:var(--text-2);
-  white-space:nowrap;
+  background:var(--line-soft);color:var(--text-2);white-space:nowrap;
 }
 .tag.ok{background:var(--green-soft);color:var(--green)}
 .tag.warn{background:var(--amber-soft);color:var(--amber)}
@@ -314,23 +251,14 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
   border:1px solid rgba(0,0,0,.08);
 }
 
-/* Empty */
-.empty{
-  padding:52px 20px;text-align:center;
-}
+.empty{padding:52px 20px;text-align:center}
 .empty i{font-size:32px;color:var(--text-3);margin-bottom:14px;display:block;opacity:.55}
 .empty b{display:block;font-size:14.5px;font-weight:700;color:var(--text);margin-bottom:6px}
 .empty p{font-size:12.5px;color:var(--text-3);max-width:380px;margin:0 auto;line-height:1.6}
 
-/* ============================================================
-   FORM (inline)
-   ============================================================ */
 .form{padding:22px;max-width:720px}
 .field{margin-bottom:16px}
-.field label{
-  display:block;font-size:12.5px;font-weight:600;color:var(--text-2);
-  margin-bottom:7px;letter-spacing:.1px;
-}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:7px;letter-spacing:.1px}
 .field label .req{color:var(--red);margin-left:2px}
 .input,.select,.textarea{
   width:100%;padding:9px 12px;
@@ -344,9 +272,9 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
   box-shadow:0 0 0 3px var(--accent-soft);
 }
 .textarea{resize:vertical;min-height:80px;line-height:1.55}
-.select{cursor:pointer;appearance:none;
-  background-image:linear-gradient(45deg,transparent 50%,var(--text-3) 50%),
-                   linear-gradient(135deg,var(--text-3) 50%,transparent 50%);
+.select{
+  cursor:pointer;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--text-3) 50%),linear-gradient(135deg,var(--text-3) 50%,transparent 50%);
   background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;
   background-size:5px 5px,5px 5px;background-repeat:no-repeat;
   padding-right:34px;
@@ -354,9 +282,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:600px){.grid-2{grid-template-columns:1fr}}
 
-/* ============================================================
-   FILE DROP
-   ============================================================ */
 .file{
   display:block;border:1.5px dashed var(--line);
   border-radius:9px;padding:22px 16px;text-align:center;
@@ -368,15 +293,9 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
 .file .fi{font-size:22px;color:var(--accent);margin-bottom:8px}
 .file .ft{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
 .file .fs{font-size:11.5px;color:var(--text-3)}
-.file.has-file{
-  border-style:solid;border-color:var(--green);
-  background:var(--green-soft);
-}
+.file.has-file{border-style:solid;border-color:var(--green);background:var(--green-soft)}
 .file.has-file .fi{color:var(--green)}
 
-/* ============================================================
-   PICKERS
-   ============================================================ */
 .icon-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
 .icon-opt{
   aspect-ratio:1;border-radius:6px;cursor:pointer;
@@ -385,9 +304,7 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
   color:var(--text-2);transition:all .15s;
 }
 .icon-opt:hover{border-color:var(--accent);color:var(--accent)}
-.icon-opt.sel{
-  background:var(--accent-soft);border-color:var(--accent);color:var(--accent);
-}
+.icon-opt.sel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .color-grid{display:flex;gap:8px;flex-wrap:wrap}
 .color-opt{
   width:28px;height:28px;border-radius:50%;cursor:pointer;
@@ -395,15 +312,9 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
   transition:transform .15s;
 }
 .color-opt:hover{transform:scale(1.1)}
-.color-opt.sel{
-  border-color:var(--text);
-  box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--text-2);
-}
+.color-opt.sel{border-color:var(--text);box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--text-2)}
 @media(max-width:600px){.icon-grid{grid-template-columns:repeat(6,1fr)}}
 
-/* ============================================================
-   MODAL
-   ============================================================ */
 .modal-bg{
   position:fixed;inset:0;z-index:200;
   background:rgba(15,23,42,.5);
@@ -423,9 +334,7 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
   padding:18px 22px;border-bottom:1px solid var(--line-soft);
   display:flex;align-items:center;justify-content:space-between;gap:12px;
 }
-.modal-head h3{
-  font-size:15.5px;font-weight:700;color:var(--text);letter-spacing:-.2px;
-}
+.modal-head h3{font-size:15.5px;font-weight:700;color:var(--text);letter-spacing:-.2px}
 .modal-head .close{
   width:30px;height:30px;border-radius:7px;cursor:pointer;
   border:1px solid var(--line);background:var(--panel);
@@ -441,9 +350,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
 }
 .modal-foot .btn{min-width:88px}
 
-/* ============================================================
-   TOAST
-   ============================================================ */
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translate(-50%,80px);
   padding:12px 18px;border-radius:9px;font-size:13px;font-weight:600;
@@ -458,15 +364,51 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
 .toast.err{border-color:var(--red);color:var(--red)}
 .toast.info{border-color:var(--accent);color:var(--accent)}
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
+.cf-bg{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(15,23,42,.55);
+  backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+html[data-theme="dark"] .cf-bg{background:rgba(0,0,0,.65)}
+.cf-bg.active{display:flex;animation:cfFade .2s ease both}
+@keyframes cfFade{from{opacity:0}to{opacity:1}}
+
+.cf{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.25);
+  width:100%;max-width:420px;
+  padding:26px 24px 22px;text-align:center;
+  animation:cfScale .28s cubic-bezier(.22,1,.36,1) both;
+}
+html[data-theme="dark"] .cf{box-shadow:0 24px 60px rgba(0,0,0,.5)}
+@keyframes cfScale{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:none}}
+.cf-icon{
+  position:relative;width:62px;height:62px;margin:0 auto 16px;border-radius:50%;
+  display:grid;place-items:center;font-size:26px;
+  background:var(--red-soft);color:var(--red);
+  animation:cfIconIn .4s cubic-bezier(.22,1,.36,1) both;
+}
+.cf-icon.warn{background:var(--amber-soft);color:var(--amber)}
+.cf-icon.info{background:var(--accent-soft);color:var(--accent)}
+.cf-icon.ok{background:var(--green-soft);color:var(--green)}
+.cf-icon::before{
+  content:"";position:absolute;inset:-4px;border-radius:50%;
+  background:currentColor;opacity:.12;
+  animation:cfPulse 2s ease-in-out infinite;
+}
+@keyframes cfIconIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes cfPulse{0%,100%{transform:scale(1);opacity:.12}50%{transform:scale(1.25);opacity:0}}
+.cf h3{font-size:17px;font-weight:800;letter-spacing:-.3px;color:var(--text);margin-bottom:8px}
+.cf p{font-size:13.5px;line-height:1.6;color:var(--text-2);margin-bottom:22px;white-space:pre-line;word-break:break-word}
+.cf p b{color:var(--text);font-weight:700}
+.cf-actions{display:flex;gap:10px;justify-content:stretch}
+.cf-actions .btn{flex:1;min-width:0;padding:10px 18px;justify-content:center;font-size:13.5px}
+
 .menu-toggle{display:none}
 @media(max-width:900px){
-  .side{
-    position:fixed;left:-270px;top:0;
-    box-shadow:4px 0 20px rgba(0,0,0,.12);
-  }
+  .side{position:fixed;left:-270px;top:0;box-shadow:4px 0 20px rgba(0,0,0,.12)}
   .side.open{left:0}
   .menu-toggle{display:grid}
   .body{padding:16px}
@@ -479,9 +421,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
 
 <div class="shell">
 
-  <!-- ============================================================
-       SIDEBAR
-       ============================================================ -->
   <aside class="side" id="side">
     <div class="brand">
       <div class="mark"><i class="fa-solid fa-truck-fast"></i></div>
@@ -500,6 +439,25 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
 
     <div class="group-label">Master Data</div>
     <nav class="nav" id="navMaster"></nav>
+
+    <div class="group-label">Operasional Delivery</div>
+    <nav class="nav">
+      <a href="/silog/admin/actual-delivery" class="ext">
+        <i class="fa-solid fa-truck-fast"></i> Actual Delivery
+      </a>
+      <a href="/silog/admin/customers" class="ext">
+        <i class="fa-solid fa-users"></i> Customer + Cycle
+      </a>
+      <a href="#" class="ext" style="opacity:.5;cursor:not-allowed" title="Coming soon">
+        <i class="fa-solid fa-book-open"></i> Log Book Problem
+      </a>
+      <a href="#" class="ext" style="opacity:.5;cursor:not-allowed" title="Coming soon">
+        <i class="fa-solid fa-shield-halved"></i> Periodik Patrol
+      </a>
+      <a href="#" class="ext" style="opacity:.5;cursor:not-allowed" title="Coming soon">
+        <i class="fa-solid fa-coins"></i> Cost Down Freight
+      </a>
+    </nav>
 
     <div class="group-label">Konten</div>
     <nav class="nav">
@@ -533,11 +491,7 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
     </div>
   </aside>
 
-  <!-- ============================================================
-       MAIN
-       ============================================================ -->
   <main class="main">
-
     <header class="topbar">
       <button class="icon-btn menu-toggle" id="menuToggle">
         <i class="fa-solid fa-bars"></i>
@@ -562,7 +516,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
 
     <div class="body">
 
-      <!-- DASHBOARD -->
       <div class="panel active" data-panel="dashboard">
         <div class="page-head">
           <div>
@@ -580,7 +533,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
         </div>
       </div>
 
-      <!-- DOKUMEN -->
       <div class="panel" data-panel="docs">
         <div class="page-head">
           <div>
@@ -605,7 +557,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
         </div>
       </div>
 
-      <!-- MENU DELIVERY -->
       <div class="panel" data-panel="delivery">
         <div class="page-head">
           <div>
@@ -621,7 +572,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
         </div>
       </div>
 
-      <!-- MENU SYSTEM -->
       <div class="panel" data-panel="system">
         <div class="page-head">
           <div>
@@ -637,7 +587,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
         </div>
       </div>
 
-      <!-- JOB BOARD -->
       <div class="panel" data-panel="job">
         <div class="page-head">
           <div>
@@ -668,7 +617,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
         </div>
       </div>
 
-      <!-- SETTINGS -->
       <div class="panel" data-panel="settings">
         <div class="page-head">
           <div>
@@ -707,7 +655,6 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
   </main>
 </div>
 
-<!-- MODAL -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-head">
@@ -724,12 +671,157 @@ td .actions{display:flex;gap:6px;justify-content:flex-end}
   </div>
 </div>
 
+<div class="cf-bg" id="cfBg">
+  <div class="cf" role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+    <div class="cf-icon" id="cfIcon">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h3 id="cfTitle">Konfirmasi</h3>
+    <p id="cfMessage">Apakah Anda yakin?</p>
+    <div class="cf-actions">
+      <button class="btn btn-ghost" id="cfCancel" type="button">Batal</button>
+      <button class="btn btn-danger"  id="cfConfirm" type="button">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
 <script>
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $   = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const uid = () => 'i_' + Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-4);
+
+function fmtSize(b) {
+  b = Number(b) || 0;
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(2) + ' MB';
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(String(iso).replace(' ', 'T'));
+  if (isNaN(d)) return String(iso);
+  return d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+}
+function statusClass(s) {
+  const t = (s||'').toLowerCase();
+  if (['aktif','tersedia','online','verified'].includes(t)) return 'ok';
+  if (['cuti','maintenance','warning','hold','nonaktif'].includes(t)) return 'warn';
+  if (['offline','reject','delay'].includes(t)) return 'err';
+  return 'info';
+}
+function debounce(fn, ms = 300) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+function toast(msg, type='info') {
+  let el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.className = 'toast';
+    el.innerHTML = '<i></i><span></span>';
+    document.body.appendChild(el);
+  }
+  const ic = el.querySelector('i');
+  const sp = el.querySelector('span');
+  const cls  = type==='success'?'ok':type==='error'?'err':'info';
+  const icon = type==='success'?'fa-circle-check':type==='error'?'fa-circle-xmark':'fa-circle-info';
+  el.className = 'toast ' + cls;
+  ic.className = 'fa-solid ' + icon;
+  sp.textContent = msg;
+  requestAnimationFrame(() => el.classList.add('show'));
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ============================================================
+   CONFIRM DIALOG
+   ============================================================ */
+let cfResolve = null;
+const cfBg        = $('cfBg');
+const cfIconEl    = $('cfIcon');
+const cfTitleEl   = $('cfTitle');
+const cfMsgEl     = $('cfMessage');
+const cfBtnOk     = $('cfConfirm');
+const cfBtnCancel = $('cfCancel');
+
+const CF_VARIANTS = {
+  danger: { icon: 'fa-solid fa-trash',                cls: '',     btn: 'btn-danger',  text: 'Ya, Hapus'     },
+  warn:   { icon: 'fa-solid fa-triangle-exclamation', cls: 'warn', btn: 'btn-primary', text: 'Ya, Lanjutkan' },
+  info:   { icon: 'fa-solid fa-circle-info',          cls: 'info', btn: 'btn-primary', text: 'OK'            },
+  ok:     { icon: 'fa-solid fa-circle-check',         cls: 'ok',   btn: 'btn-primary', text: 'Ya'            },
+};
+
+function showConfirm(opts = {}) {
+  if (typeof opts === 'string') opts = { message: opts };
+
+  const {
+    title='Konfirmasi', message='Apakah Anda yakin?',
+    confirmText=null, cancelText='Batal',
+    variant='danger', icon=null, confirmClass=null,
+  } = opts;
+
+  const v = CF_VARIANTS[variant] || CF_VARIANTS.danger;
+
+  cfIconEl.className    = 'cf-icon ' + v.cls;
+  cfIconEl.innerHTML    = `<i class="${icon || v.icon}"></i>`;
+  cfTitleEl.textContent = title;
+  cfMsgEl.innerHTML     = String(message).replace(/\n/g, '<br>');
+  cfBtnOk.textContent   = confirmText || v.text;
+  cfBtnOk.className     = 'btn ' + (confirmClass || v.btn);
+  cfBtnCancel.textContent = cancelText;
+
+  cfBg.classList.add('active');
+  return new Promise(resolve => {
+    cfResolve = resolve;
+    setTimeout(() => cfBtnOk.focus(), 100);
+  });
+}
+
+function closeConfirm(result) {
+  cfBg.classList.remove('active');
+  if (cfResolve) {
+    const r = cfResolve;
+    cfResolve = null;
+    setTimeout(() => r(result), 50);
+  }
+}
+
+cfBtnOk.addEventListener('click',     () => closeConfirm(true));
+cfBtnCancel.addEventListener('click', () => closeConfirm(false));
+cfBg.addEventListener('click', e => { if (e.target === cfBg) closeConfirm(false); });
+
+document.addEventListener('keydown', e => {
+  if (!cfBg.classList.contains('active')) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeConfirm(false); }
+  if (e.key === 'Enter')  { e.preventDefault(); closeConfirm(true);  }
+});
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const CSRF      = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const THEME_KEY = 'logiboard-theme';
+const LOCAL_KEY = 'logiboard-local';
+const BASE      = '/silog';
+
+const COLORS = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#a855f7','#06b6d4','#ec4899','#64748b'];
+const ICONS = [
+  'fa-folder','fa-file','fa-file-lines','fa-file-invoice','fa-file-invoice-dollar',
+  'fa-file-contract','fa-file-signature','fa-clipboard-check','fa-clipboard-list',
+  'fa-box','fa-boxes-packing','fa-boxes-stacked','fa-truck','fa-truck-fast','fa-truck-ramp-box',
+  'fa-book-open','fa-shield-halved','fa-coins','fa-chart-line','fa-database',
+  'fa-industry','fa-satellite-dish','fa-route','fa-map-location-dot',
+  'fa-user-tie','fa-users','fa-warehouse','fa-gas-pump','fa-gears','fa-passport',
+  'fa-arrow-down-to-line','fa-arrow-up-from-bracket','fa-scroll','fa-magnifying-glass-chart'
+];
+
 /* ============================================================
    API CLIENT
    ============================================================ */
-const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
 const API = {
   async call(url, method = 'GET', data = null, isForm = false) {
     const opts = {
@@ -750,8 +842,8 @@ const API = {
           return fd;
         })();
       } else {
-        opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-        opts.body = new URLSearchParams(data);
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(data);
       }
     }
 
@@ -761,9 +853,7 @@ const API = {
     catch (e) { json = { message: 'Respons server tidak valid.' }; }
 
     if (!res.ok) {
-      const msg = json.errors
-        ? Object.values(json.errors)[0]
-        : (json.message || `HTTP ${res.status}`);
+      const msg = json.errors ? Object.values(json.errors)[0] : (json.message || `HTTP ${res.status}`);
       const err = new Error(msg);
       err.status = res.status;
       err.body   = json;
@@ -771,40 +861,21 @@ const API = {
     }
     return json;
   },
-  get:  (url)                => API.call(url, 'GET'),
-  post: (url, data, isForm)  => API.call(url, 'POST', data, isForm),
-  put:  (url, data)          => API.call(url, 'PUT', data),
-  del:  (url)                => API.call(url, 'DELETE'),
+  get:  (url)               => API.call(url, 'GET'),
+  post: (url, data, isForm) => API.call(url, 'POST', data, isForm),
+  put:  (url, data)         => API.call(url, 'PUT', data),
+  del:  (url)               => API.call(url, 'DELETE'),
 };
 
 /* ============================================================
-   CONSTANTS
-   ============================================================ */
-const THEME_KEY = 'logiboard-theme';
-const LOCAL_KEY = 'logiboard-local';
-const BASE_URL  = ''; // sesuaikan kalau ada prefix
-
-const COLORS = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#a855f7','#06b6d4','#ec4899','#64748b'];
-const ICONS = [
-  'fa-folder','fa-file','fa-file-lines','fa-file-invoice','fa-file-invoice-dollar',
-  'fa-file-contract','fa-file-signature','fa-clipboard-check','fa-clipboard-list',
-  'fa-box','fa-boxes-packing','fa-boxes-stacked','fa-truck','fa-truck-fast','fa-truck-ramp-box',
-  'fa-book-open','fa-shield-halved','fa-coins','fa-chart-line','fa-database',
-  'fa-industry','fa-satellite-dish','fa-route','fa-map-location-dot',
-  'fa-user-tie','fa-users','fa-warehouse','fa-gas-pump','fa-gears','fa-passport',
-  'fa-arrow-down-to-line','fa-arrow-up-from-bracket','fa-scroll','fa-magnifying-glass-chart'
-];
-
-/* ============================================================
    MASTER SCHEMAS
-   - kategori : field-nya cocok dengan kolom DB (server-backed)
-   - lainnya  : localStorage
    ============================================================ */
 const MASTERS = {
   kategori: {
     label:'Kategori Dokumen', singular:'Kategori', icon:'fa-tags',
     desc:'Kategori untuk mengelompokkan dokumen.',
     backend: true,
+    endpoints: { list:'/admin/categories/list', base:'/admin/categories', idPattern:'/admin/{id}/categories' },
     fields: [
       { k:'slug',        l:'Kode',          t:'text', req:1 },
       { k:'name',        l:'Nama Kategori', t:'text', req:1 },
@@ -819,9 +890,51 @@ const MASTERS = {
       { k:'icon',  l:'Ikon',  t:'icon' }
     ]
   },
+
+  /* ============ MASTER ITEM (ICS) ============ */
+  item: {
+    label:'Item ICS', singular:'Item', icon:'fa-box',
+    desc:'Master item ICS untuk detail delivery.',
+    backend: true,
+    endpoints: { list:'/admin/items/list', base:'/admin/items', idPattern:'/admin/{id}/items' },
+    fields: [
+      { k:'ics_code', l:'Kode ICS',  t:'text', req:1 },
+      { k:'ics_name', l:'Nama Item', t:'text', req:1 },
+      { k:'type',     l:'Tipe',      t:'text' },
+      { k:'unit',     l:'Satuan',    t:'text', def:'PCS' },
+    ],
+    table: [
+      { k:'ics_code', l:'Kode ICS', cls:'strong' },
+      { k:'ics_name', l:'Nama' },
+      { k:'type',     l:'Tipe' },
+      { k:'unit',     l:'Satuan' },
+    ]
+  },
+
+  /* ============ MASTER VEHICLE ============ */
+  vehicle: {
+    label:'Kendaraan', singular:'Kendaraan', icon:'fa-truck',
+    desc:'Master kendaraan / armada logistik.',
+    backend: true,
+    endpoints: { list:'/admin/vehicles/list', base:'/admin/vehicles', idPattern:'/admin/{id}/vehicles' },
+    fields: [
+      { k:'plate_number', l:'No. Polisi', t:'text', req:1 },
+      { k:'tonase',       l:'Tonase',     t:'text' },
+      { k:'jenis',        l:'Jenis',      t:'select', opts:['Rental','Truk','Wingbox','Trailer','Pickup','Van'], def:'Rental' },
+      { k:'vendor',       l:'Vendor',     t:'text' },
+    ],
+    table: [
+      { k:'plate_number', l:'No. Polisi', cls:'strong' },
+      { k:'tonase',       l:'Tonase' },
+      { k:'jenis',        l:'Jenis' },
+      { k:'vendor',       l:'Vendor' },
+    ]
+  },
+
+  /* ============ MASTER VENDOR (local) ============ */
   vendor: {
     label:'Vendor', singular:'Vendor', icon:'fa-building',
-    desc:'Data vendor / rekanan logistik.',
+    desc:'Data vendor / rekanan logistik (lokal).',
     fields: [
       { k:'kode',   l:'Kode Vendor', t:'text', req:1 },
       { k:'nama',   l:'Nama Vendor', t:'text', req:1 },
@@ -839,6 +952,7 @@ const MASTERS = {
       { k:'status', l:'Status', t:'status' }
     ]
   },
+
   driver: {
     label:'Driver', singular:'Driver', icon:'fa-user-tie',
     desc:'Data pengemudi kendaraan logistik.',
@@ -858,26 +972,7 @@ const MASTERS = {
       { k:'status', l:'Status', t:'status' }
     ]
   },
-  kendaraan: {
-    label:'Kendaraan', singular:'Kendaraan', icon:'fa-truck',
-    desc:'Master data kendaraan / armada logistik.',
-    fields: [
-      { k:'nopol',   l:'No. Polisi', t:'text', req:1 },
-      { k:'jenis',   l:'Jenis',      t:'select', opts:['Truk','Trailer','Wingbox','Pickup','Van'], def:'Truk' },
-      { k:'merk',    l:'Merk',       t:'text' },
-      { k:'tahun',   l:'Tahun',      t:'text' },
-      { k:'kapasitas', l:'Kapasitas (ton)', t:'text' },
-      { k:'vendor',  l:'Vendor',     t:'text' },
-      { k:'status',  l:'Status',     t:'select', opts:['Tersedia','Digunakan','Maintenance','Nonaktif'], def:'Tersedia' }
-    ],
-    table: [
-      { k:'nopol', l:'No. Polisi', cls:'strong' },
-      { k:'jenis', l:'Jenis' },
-      { k:'merk',  l:'Merk' },
-      { k:'kapasitas', l:'Kapasitas' },
-      { k:'status', l:'Status', t:'status' }
-    ]
-  },
+
   gudang: {
     label:'Gudang', singular:'Gudang', icon:'fa-warehouse',
     desc:'Master data gudang dan lokasi penyimpanan.',
@@ -897,6 +992,7 @@ const MASTERS = {
       { k:'status', l:'Status', t:'status' }
     ]
   },
+
   rute: {
     label:'Rute', singular:'Rute', icon:'fa-route',
     desc:'Master rute pengiriman antar kota.',
@@ -916,37 +1012,16 @@ const MASTERS = {
       { k:'estimasi', l:'Estimasi' }
     ]
   },
-  customer: {
-    label:'Customer', singular:'Customer', icon:'fa-users',
-    desc:'Master data pelanggan / penerima barang.',
-    fields: [
-      { k:'kode',    l:'Kode Customer', t:'text', req:1 },
-      { k:'nama',    l:'Nama Customer', t:'text', req:1 },
-      { k:'kontak',  l:'Kontak',        t:'text' },
-      { k:'telp',    l:'Telepon',       t:'text' },
-      { k:'alamat',  l:'Alamat',        t:'textarea' },
-      { k:'status',  l:'Status',        t:'select', opts:['Aktif','Nonaktif'], def:'Aktif' }
-    ],
-    table: [
-      { k:'kode',   l:'Kode', cls:'strong' },
-      { k:'nama',   l:'Nama Customer' },
-      { k:'kontak', l:'Kontak' },
-      { k:'telp',   l:'Telepon' },
-      { k:'status', l:'Status', t:'status' }
-    ]
-  }
 };
 
 /* ============================================================
    STATE
    ============================================================ */
 let state = {
-  /* Server-backed */
   kategori: [],
   documents: [],
-
-  /* Local-only (belum ada backend) */
-  vendor: [], driver: [], kendaraan: [], gudang: [], rute: [], customer: [],
+  item: [], vehicle: [],
+  vendor: [], driver: [], gudang: [], rute: [],
   deliveryMenu: [
     { id:'d1', title:'Actual Delivery',
       desc:'Realisasi pengiriman harian, bukti terima, dan status akhir tiap trip.',
@@ -987,15 +1062,14 @@ let state = {
 };
 
 /* ============================================================
-   LOCAL STORAGE (untuk data yang belum ada backend-nya)
+   LOCAL STORAGE
    ============================================================ */
 function loadLocalState() {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw);
-    ['vendor','driver','kendaraan','gudang','rute','customer',
-     'deliveryMenu','systemMenu','jobConfig','settings'].forEach(k => {
+    ['vendor','driver','gudang','rute','deliveryMenu','systemMenu','jobConfig','settings'].forEach(k => {
       if (parsed[k] !== undefined) state[k] = parsed[k];
     });
   } catch (e) { console.warn('loadLocalState', e); }
@@ -1003,8 +1077,7 @@ function loadLocalState() {
 function saveLocalState() {
   try {
     const toSave = {};
-    ['vendor','driver','kendaraan','gudang','rute','customer',
-     'deliveryMenu','systemMenu','jobConfig','settings'].forEach(k => {
+    ['vendor','driver','gudang','rute','deliveryMenu','systemMenu','jobConfig','settings'].forEach(k => {
       toSave[k] = state[k];
     });
     localStorage.setItem(LOCAL_KEY, JSON.stringify(toSave));
@@ -1012,88 +1085,25 @@ function saveLocalState() {
 }
 
 /* ============================================================
-   HELPERS
-   ============================================================ */
-const $   = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-const uid = () => 'i_' + Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-4);
-
-function fmtSize(b) {
-  b = Number(b) || 0;
-  if (b < 1024) return b + ' B';
-  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
-  return (b/1048576).toFixed(2) + ' MB';
-}
-function fmtDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso.replace(' ', 'T'));
-  if (isNaN(d)) return iso;
-  return d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-}
-function fileIcon(type, name) {
-  const n = (name||'').toLowerCase();
-  if (type?.startsWith('image/')) return 'fa-image';
-  if (n.endsWith('.pdf')) return 'fa-file-pdf';
-  if (n.endsWith('.doc')||n.endsWith('.docx')) return 'fa-file-word';
-  if (n.endsWith('.xls')||n.endsWith('.xlsx')) return 'fa-file-excel';
-  if (n.endsWith('.zip')||n.endsWith('.rar')) return 'fa-file-zipper';
-  return 'fa-file';
-}
-function statusClass(s) {
-  const t = (s||'').toLowerCase();
-  if (['aktif','tersedia','online','verified'].includes(t)) return 'ok';
-  if (['cuti','maintenance','warning','hold','nonaktif'].includes(t)) return 'warn';
-  if (['offline','reject','delay'].includes(t)) return 'err';
-  return 'info';
-}
-function debounce(fn, ms = 300) {
-  let t;
-  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-}
-
-function toast(msg, type='info') {
-  let el = document.getElementById('toast');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'toast';
-    el.className = 'toast';
-    el.innerHTML = '<i></i><span></span>';
-    document.body.appendChild(el);
-  }
-  const ic = el.querySelector('i');
-  const sp = el.querySelector('span');
-  const cls  = type==='success'?'ok':type==='error'?'err':'info';
-  const icon = type==='success'?'fa-circle-check':type==='error'?'fa-circle-xmark':'fa-circle-info';
-  el.className = 'toast ' + cls;
-  ic.className = 'fa-solid ' + icon;
-  sp.textContent = msg;
-  requestAnimationFrame(() => el.classList.add('show'));
-  clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
-}
-
-/* ============================================================
    BACKEND LOADERS
    ============================================================ */
-async function loadCategories() {
+async function loadBackendMaster(key) {
+  const m = MASTERS[key];
+  if (!m.backend) return;
+
   try {
-    const res  = await API.get('/silog/admin/categories/list');
-    state.kategori = (res.data || []).map(c => ({
-      id:    c.id,
-      slug:  c.slug,
-      name:  c.name,
-      color: c.color,
-      icon:  c.icon,
-      description: c.description,
-      documents_count: c.documents_count || 0,
-    }));
-    refreshFilter();
+    const res = await API.get(BASE + m.endpoints.list);
+    state[key] = (res.data || []);
     renderSidebar();
   } catch (e) {
-    toast('Gagal memuat kategori: ' + e.message, 'error');
-    state.kategori = [];
+    toast('Gagal memuat ' + m.label + ': ' + e.message, 'error');
+    state[key] = [];
   }
 }
+
+async function loadCategories() { await loadBackendMaster('kategori'); refreshFilter(); }
+async function loadItems()      { await loadBackendMaster('item'); }
+async function loadVehicles()   { await loadBackendMaster('vehicle'); }
 
 let docPage = 1;
 
@@ -1107,7 +1117,7 @@ async function loadDocuments() {
   params.set('page', docPage);
 
   try {
-    const res = await API.get('/silog/admin/documents/list?' + params.toString());
+    const res = await API.get(BASE + '/admin/documents/list?' + params.toString());
 
     state.documents = (res.data || []).map(d => ({
       id:          d.id,
@@ -1154,6 +1164,7 @@ function renderSidebar() {
       <span class="cnt">${n}</span>
     </button>`;
   }).join('');
+
   $('cntDocs').textContent = state.documents.length;
   $('cntDel').textContent  = state.deliveryMenu.length;
   $('cntSys').textContent  = state.systemMenu.length;
@@ -1200,6 +1211,11 @@ function goAdmin(target) {
         debounce(() => renderMasterTable(key), 200));
     }
     $('crumb').textContent = m.label;
+
+    // Lazy load backend
+    if (m.backend && (state[key] || []).length === 0) {
+      loadBackendMaster(key).then(() => renderMasterTable(key));
+    }
   } else {
     $('crumb').textContent = CRUMBS[target] || 'Admin';
   }
@@ -1217,7 +1233,7 @@ function goAdmin(target) {
   $('side').classList.remove('open');
 }
 
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   const nav = e.target.closest('[data-adm]');
   if (nav) { goAdmin(nav.dataset.adm); return; }
 
@@ -1225,7 +1241,6 @@ document.addEventListener('click', e => {
   if (nb) {
     const kind = nb.dataset.new;
     if (kind === 'deliveryMenu' || kind === 'systemMenu') openMenuModal(kind, null);
-    else if (kind === 'kategori') openCategoryModal(null);
     else openMasterModal(kind, null);
   }
 });
@@ -1239,12 +1254,12 @@ function renderDashboard() {
   const stats = [
     { l:'Total Dokumen', v:state.documents.length, i:'fa-file-lines' },
     { l:'Kategori',      v:state.kategori.length,  i:'fa-tags' },
+    { l:'Item ICB',      v:state.item.length,      i:'fa-box' },
+    { l:'Kendaraan',     v:state.vehicle.length,   i:'fa-truck' },
     { l:'Vendor',        v:state.vendor.length,    i:'fa-building' },
     { l:'Driver',        v:state.driver.length,    i:'fa-user-tie' },
-    { l:'Kendaraan',     v:state.kendaraan.length, i:'fa-truck' },
     { l:'Gudang',        v:state.gudang.length,    i:'fa-warehouse' },
-    { l:'Rute',          v:state.rute.length,      i:'fa-route' },
-    { l:'Customer',      v:state.customer.length,  i:'fa-users' }
+    { l:'Rute',          v:state.rute.length,      i:'fa-route' }
   ];
   $('statsGrid').innerHTML = stats.map(s => `
     <div class="stat">
@@ -1283,7 +1298,7 @@ function renderDashboard() {
 }
 
 /* ============================================================
-   MASTER TABLE (generic — kategori + local)
+   MASTER TABLE (generic — semua master)
    ============================================================ */
 function renderMasterTable(key) {
   const m = MASTERS[key];
@@ -1352,28 +1367,49 @@ function renderMasterTable(key) {
   `;
 }
 
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   const ed = e.target.closest('[data-edit-master]');
   if (ed) {
-    const key = ed.dataset.editMaster;
-    if (key === 'kategori') openCategoryModal(ed.dataset.id);
-    else openMasterModal(key, ed.dataset.id);
+    openMasterModal(ed.dataset.editMaster, ed.dataset.id);
     return;
   }
   const dl = e.target.closest('[data-del-master]');
   if (dl) {
-    const key = dl.dataset.delMaster;
-    if (key === 'kategori') deleteCategory(dl.dataset.id);
-    else deleteMasterItem(key, dl.dataset.id);
+    deleteMasterItem(dl.dataset.delMaster, dl.dataset.id);
   }
 });
 
-/* --- Local-only master CRUD --- */
-function deleteMasterItem(key, id) {
-  const item = (state[key] || []).find(x => x.id === id);
+async function deleteMasterItem(key, id) {
+  const m = MASTERS[key];
+  const item = (state[key] || []).find(x => String(x.id) === String(id));
   if (!item) return;
-  if (!confirm(`Hapus data ini?\n\n${item.nama || item.kode || item.title || ''}`)) return;
-  state[key] = state[key].filter(x => x.id !== id);
+
+  const nama = item.name || item.ics_name || item.plate_number || item.nama || item.kode || 'Data ini';
+
+  const ok = await showConfirm({
+    title: `Hapus ${m.singular}?`,
+    message: `<b>${esc(nama)}</b> akan dihapus permanen.`,
+    confirmText: 'Ya, Hapus',
+    variant: 'danger',
+  });
+  if (!ok) return;
+
+  // Backend: panggil API
+  if (m.backend) {
+    try {
+      const url = BASE + m.endpoints.idPattern.replace('{id}', id);
+      await API.del(url);
+      toast('Data dihapus', 'success');
+      await loadBackendMaster(key);
+      renderMasterTable(key);
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+    return;
+  }
+
+  // Local
+  state[key] = state[key].filter(x => String(x.id) !== String(id));
   saveLocalState();
   renderMasterTable(key);
   renderSidebar();
@@ -1381,110 +1417,7 @@ function deleteMasterItem(key, id) {
 }
 
 /* ============================================================
-   KATEGORI — BACKEND CRUD
-   ============================================================ */
-function openCategoryModal(editId) {
-  const item = editId ? state.kategori.find(c => String(c.id) === String(editId)) : null;
-
-  const body = `
-    <div class="field">
-      <label>Kode <span class="req">*</span></label>
-      <input type="text" class="input" id="kf_slug" required maxlength="60"
-             value="${esc(item ? item.slug : '')}" placeholder="INB, OUT, CUS…" />
-    </div>
-    <div class="field">
-      <label>Nama Kategori <span class="req">*</span></label>
-      <input type="text" class="input" id="kf_name" required maxlength="60"
-             value="${esc(item ? item.name : '')}" />
-    </div>
-    <div class="field">
-      <label>Warna</label>
-      <input type="hidden" id="kf_color" value="${esc(item ? item.color : '#3b82f6')}" />
-      <div class="color-grid">
-        ${COLORS.map(c => `
-          <div class="color-opt ${c === (item ? item.color : '#3b82f6') ? 'sel' : ''}"
-               style="background:${c}" data-color="${c}"></div>
-        `).join('')}
-      </div>
-    </div>
-    <div class="field">
-      <label>Ikon</label>
-      <input type="hidden" id="kf_icon" value="${esc(item ? item.icon : 'fa-folder')}" />
-      <div class="icon-grid">
-        ${ICONS.slice(0,16).map(ic => `
-          <div class="icon-opt ${ic === (item ? item.icon : 'fa-folder') ? 'sel' : ''}" data-icon="${ic}">
-            <i class="fa-solid ${ic}"></i>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-    <div class="field">
-      <label>Keterangan</label>
-      <textarea class="textarea" id="kf_description" maxlength="300">${esc(item ? (item.description || '') : '')}</textarea>
-    </div>
-  `;
-
-  openModal((item ? 'Edit ' : 'Tambah ') + 'Kategori', body, () => submitCategory(editId));
-}
-
-async function submitCategory(editId) {
-  const slug        = $('kf_slug').value.trim();
-  const name        = $('kf_name').value.trim();
-  const color       = $('kf_color').value;
-  const icon        = $('kf_icon').value;
-  const description = $('kf_description').value.trim();
-
-  if (!slug) { toast('Kode wajib diisi', 'error'); $('kf_slug').focus(); return; }
-  if (!name) { toast('Nama wajib diisi', 'error'); $('kf_name').focus(); return; }
-
-  const btn = $('modalSave');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan…';
-
-  try {
-    if (editId) {
-      await API.put(`/silog/admin/${editId}/categories`, {
-        slug, name, color, icon, description,
-      });
-      toast('Kategori diperbarui', 'success');
-    } else {
-      await API.post('/silog/admin/categories', {
-        slug, name, color, icon, description,
-      });
-      toast('Kategori ditambahkan', 'success');
-    }
-    closeModal();
-    await loadCategories();
-    renderMasterTable('kategori');
-  } catch (e) {
-    toast(e.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
-  }
-}
-
-async function deleteCategory(id) {
-  const item = state.kategori.find(c => String(c.id) === String(id));
-  if (!item) return;
-  const n = item.documents_count || 0;
-  const msg = n > 0
-    ? `Kategori "${item.name}" masih punya ${n} dokumen. Yakin hapus?`
-    : `Hapus kategori "${item.name}"?`;
-  if (!confirm(msg)) return;
-
-  try {
-    await API.del(`/silog/admin/${id}/categories`);
-    toast('Kategori dihapus', 'success');
-    await loadCategories();
-    renderMasterTable('kategori');
-  } catch (e) {
-    toast(e.message, 'error');
-  }
-}
-
-/* ============================================================
-   MASTER MODAL (local-only masters)
+   MASTER MODAL
    ============================================================ */
 let modalContext = null;
 
@@ -1545,19 +1478,13 @@ function fieldHTML(f, value) {
     inner = `
       <input type="hidden" id="f_${f.k}" value="${esc(v || '#3b82f6')}" />
       <div class="color-grid">
-        ${COLORS.map(c => `
-          <div class="color-opt ${c === v ? 'sel' : ''}" style="background:${c}" data-color="${c}"></div>
-        `).join('')}
+        ${COLORS.map(c => `<div class="color-opt ${c === v ? 'sel' : ''}" style="background:${c}" data-color="${c}"></div>`).join('')}
       </div>`;
   } else if (f.t === 'icon') {
     inner = `
       <input type="hidden" id="f_${f.k}" value="${esc(v || 'fa-folder')}" />
       <div class="icon-grid">
-        ${ICONS.slice(0,16).map(ic => `
-          <div class="icon-opt ${ic === v ? 'sel' : ''}" data-icon="${ic}">
-            <i class="fa-solid ${ic}"></i>
-          </div>
-        `).join('')}
+        ${ICONS.slice(0,16).map(ic => `<div class="icon-opt ${ic === v ? 'sel' : ''}" data-icon="${ic}"><i class="fa-solid ${ic}"></i></div>`).join('')}
       </div>`;
   } else {
     inner = `<input type="text" class="input" id="f_${f.k}" ${f.req?'required':''} value="${esc(v)}" />`;
@@ -1567,11 +1494,11 @@ function fieldHTML(f, value) {
 
 function openMasterModal(key, editId) {
   const m = MASTERS[key];
-  const item = editId ? (state[key] || []).find(x => x.id === editId) : null;
+  const item = editId ? (state[key] || []).find(x => String(x.id) === String(editId)) : null;
   const title = (item ? 'Edit ' : 'Tambah ') + m.singular;
   const body = m.fields.map(f => fieldHTML(f, item ? item[f.k] : undefined)).join('');
 
-  openModal(title, body, () => {
+  openModal(title, body, async () => {
     const data = {};
     for (const f of m.fields) {
       const el = $('f_' + f.k);
@@ -1582,24 +1509,49 @@ function openMasterModal(key, editId) {
         return;
       }
     }
-    if (item) {
-      Object.assign(item, data);
-      toast(m.singular + ' diperbarui', 'success');
-    } else {
-      data.id = uid();
-      (state[key] = state[key] || []).push(data);
-      toast(m.singular + ' ditambahkan', 'success');
+
+    const btn = $('modalSave');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan…';
+
+    try {
+      if (m.backend) {
+        if (item) {
+          const url = BASE + m.endpoints.idPattern.replace('{id}', item.id);
+          await API.put(url, data);
+        } else {
+          await API.post(BASE + m.endpoints.base, data);
+        }
+        toast(m.singular + (item ? ' diperbarui' : ' ditambahkan'), 'success');
+        closeModal();
+        await loadBackendMaster(key);
+        renderMasterTable(key);
+      } else {
+        if (item) {
+          Object.assign(item, data);
+          toast(m.singular + ' diperbarui', 'success');
+        } else {
+          data.id = uid();
+          (state[key] = state[key] || []).push(data);
+          toast(m.singular + ' ditambahkan', 'success');
+        }
+        saveLocalState();
+        closeModal();
+        renderMasterTable(key);
+        renderSidebar();
+      }
+      if ($('panel-dashboard')?.classList.contains('active')) renderDashboard();
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
     }
-    saveLocalState();
-    closeModal();
-    renderMasterTable(key);
-    renderSidebar();
-    if ($('panel-dashboard')?.classList.contains('active')) renderDashboard();
   });
 }
 
 /* ============================================================
-   MENU TABLE (Delivery / System) — local-only
+   MENU TABLE (Delivery / System)
    ============================================================ */
 function renderMenuTable(listKey) {
   const el = $('table_' + listKey);
@@ -1656,17 +1608,25 @@ function renderMenuTable(listKey) {
   `;
 }
 
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   const ed = e.target.closest('[data-edit-menu]');
   if (ed) { openMenuModal(ed.dataset.editMenu, ed.dataset.id); return; }
   const dl = e.target.closest('[data-del-menu]');
   if (dl) {
     const key = dl.dataset.delMenu;
     const id  = dl.dataset.id;
-    const item = state[key].find(x => x.id === id);
+    const item = state[key].find(x => String(x.id) === String(id));
     if (!item) return;
-    if (!confirm(`Hapus menu "${item.title}"?`)) return;
-    state[key] = state[key].filter(x => x.id !== id);
+
+    const ok = await showConfirm({
+      title: 'Hapus Menu?',
+      message: `<b>${esc(item.title)}</b> akan dihapus dari daftar.`,
+      confirmText: 'Ya, Hapus',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
+    state[key] = state[key].filter(x => String(x.id) !== String(id));
     saveLocalState();
     renderMenuTable(key);
     renderSidebar();
@@ -1676,14 +1636,13 @@ document.addEventListener('click', e => {
 
 function openMenuModal(listKey, editId) {
   const list = state[listKey];
-  const item = editId ? list.find(x => x.id === editId) : null;
+  const item = editId ? list.find(x => String(x.id) === String(editId)) : null;
   const singular = listKey === 'deliveryMenu' ? 'Menu Delivery' : 'Sistem';
 
   const body = `
     <div class="field">
       <label>Judul<span class="req">*</span></label>
-      <input type="text" class="input" id="mf_title" required maxlength="60"
-             value="${esc(item ? item.title : '')}" />
+      <input type="text" class="input" id="mf_title" required maxlength="60" value="${esc(item ? item.title : '')}" />
     </div>
     <div class="field">
       <label>Deskripsi<span class="req">*</span></label>
@@ -1691,28 +1650,20 @@ function openMenuModal(listKey, editId) {
     </div>
     <div class="field">
       <label>URL</label>
-      <input type="text" class="input" id="mf_url"
-             placeholder="Kosongkan atau isi # bila belum tersedia"
-             value="${esc(item ? (item.url || '#') : '#')}" />
+      <input type="text" class="input" id="mf_url" placeholder="Kosongkan atau isi # bila belum tersedia" value="${esc(item ? (item.url || '#') : '#')}" />
     </div>
     <div class="field">
       <label>Ikon</label>
       <input type="hidden" id="mf_icon" value="${esc(item ? item.icon : 'fa-clipboard-check')}" />
       <div class="icon-grid">
-        ${ICONS.slice(0,16).map(ic => `
-          <div class="icon-opt ${ic === (item ? item.icon : 'fa-clipboard-check') ? 'sel' : ''}" data-icon="${ic}">
-            <i class="fa-solid ${ic}"></i>
-          </div>
-        `).join('')}
+        ${ICONS.slice(0,16).map(ic => `<div class="icon-opt ${ic === (item ? item.icon : 'fa-clipboard-check') ? 'sel' : ''}" data-icon="${ic}"><i class="fa-solid ${ic}"></i></div>`).join('')}
       </div>
     </div>
     <div class="field">
       <label>Warna</label>
       <input type="hidden" id="mf_color" value="${esc(item ? item.color : '#3b82f6')}" />
       <div class="color-grid">
-        ${COLORS.map(c => `
-          <div class="color-opt ${c === (item ? item.color : '#3b82f6') ? 'sel' : ''}" style="background:${c}" data-color="${c}"></div>
-        `).join('')}
+        ${COLORS.map(c => `<div class="color-opt ${c === (item ? item.color : '#3b82f6') ? 'sel' : ''}" style="background:${c}" data-color="${c}"></div>`).join('')}
       </div>
     </div>
   `;
@@ -1741,7 +1692,7 @@ function openMenuModal(listKey, editId) {
 }
 
 /* ============================================================
-   DOKUMEN — BACKEND CRUD
+   DOKUMEN
    ============================================================ */
 function refreshFilter() {
   const f = $('docsFilter');
@@ -1766,11 +1717,7 @@ function renderDocs() {
   el.innerHTML = `
     <table>
       <thead><tr>
-        <th>Judul</th>
-        <th>Kategori</th>
-        <th>File</th>
-        <th>Ukuran</th>
-        <th>Tanggal</th>
+        <th>Judul</th><th>Kategori</th><th>File</th><th>Ukuran</th><th>Tanggal</th>
         <th style="width:150px;text-align:right">Aksi</th>
       </tr></thead>
       <tbody>
@@ -1782,21 +1729,13 @@ function renderDocs() {
               <div class="strong">${esc(d.title)}</div>
               ${d.desc ? `<div class="muted" style="margin-top:3px;font-size:12px">${esc(d.desc.substring(0,60))}${d.desc.length>60?'…':''}</div>` : ''}
             </td>
-            <td>
-              <span class="tag" style="background:${color}22;color:${color};border:1px solid ${color}55">
-                ${esc(name)}
-              </span>
-            </td>
-            <td class="muted">
-              <i class="fa-solid fa-file-pdf" style="color:#dc2626;margin-right:6px"></i>
-              ${esc(d.fileName)}
-            </td>
+            <td><span class="tag" style="background:${color}22;color:${color};border:1px solid ${color}55">${esc(name)}</span></td>
+            <td class="muted"><i class="fa-solid fa-file-pdf" style="color:#dc2626;margin-right:6px"></i>${esc(d.fileName)}</td>
             <td class="muted">${d._sizeHuman || fmtSize(d.fileSize)}</td>
             <td class="muted">${fmtDate(d.uploadedAt)}</td>
             <td>
               <div class="actions">
-                <a class="btn btn-icon btn-sm"
-                   href="/silog/admin/${d.id}/documents/download" target="_blank" title="Unduh">
+                <a class="btn btn-icon btn-sm" href="${BASE}/admin/${d.id}/documents/download" target="_blank" title="Unduh">
                   <i class="fa-solid fa-download"></i>
                 </a>
                 <button class="btn btn-icon btn-sm" onclick="editDoc(${d.id})" title="Edit">
@@ -1817,7 +1756,6 @@ function renderDocs() {
 $('docsSearch').addEventListener('input', debounce(() => { docPage = 1; loadDocuments(); }, 350));
 $('docsFilter').addEventListener('change', () => { docPage = 1; loadDocuments(); });
 
-/* --- Upload Modal --- */
 $('uploadBtn').addEventListener('click', async () => {
   if (!state.kategori.length) {
     await loadCategories();
@@ -1902,7 +1840,7 @@ async function submitUpload() {
   fd.append('file', file);
 
   try {
-    await API.post('/silog/admin/documents', fd, true);
+    await API.post(BASE + '/admin/documents', fd, true);
     toast('Dokumen berhasil diupload', 'success');
     closeModal();
     docPage = 1;
@@ -1916,9 +1854,8 @@ async function submitUpload() {
   }
 }
 
-/* --- Edit Modal --- */
 window.editDoc = function (id) {
-  const doc = state.documents.find(d => d.id === id);
+  const doc = state.documents.find(d => String(d.id) === String(id));
   if (!doc) return;
 
   const catOpts = state.kategori.map(c =>
@@ -1928,9 +1865,7 @@ window.editDoc = function (id) {
   const body = `
     <div class="field">
       <label>Kategori<span class="req">*</span></label>
-      <select class="select" id="ef_cat" required>
-        ${catOpts}
-      </select>
+      <select class="select" id="ef_cat" required>${catOpts}</select>
     </div>
     <div class="field">
       <label>Judul Dokumen<span class="req">*</span></label>
@@ -1962,7 +1897,7 @@ async function submitEdit(id) {
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan…';
 
   try {
-    await API.put(`/silog/admin/${id}/documents`, {
+    await API.put(BASE + `/admin/${id}/documents`, {
       category_id: catId,
       title: title,
       description: desc,
@@ -1978,11 +1913,21 @@ async function submitEdit(id) {
   }
 }
 
-/* --- Delete --- */
 window.deleteDoc = async function (id) {
-  if (!confirm('Hapus dokumen ini? Tindakan tidak bisa dibatalkan.')) return;
+  const doc = state.documents.find(d => String(d.id) === String(id));
+
+  const ok = await showConfirm({
+    title: 'Hapus Dokumen?',
+    message: doc
+      ? `<b>${esc(doc.title)}</b> beserta file PDF-nya akan dihapus permanen.\nTindakan ini tidak bisa dibatalkan.`
+      : 'Dokumen beserta file PDF-nya akan dihapus permanen.',
+    confirmText: 'Ya, Hapus',
+    variant: 'danger',
+  });
+  if (!ok) return;
+
   try {
-    await API.del(`/silog/admin/${id}/documents`);
+    await API.del(BASE + `/admin/${id}/documents`);
     toast('Dokumen dihapus', 'success');
     await loadDocuments();
   } catch (e) {
@@ -1991,7 +1936,7 @@ window.deleteDoc = async function (id) {
 };
 
 /* ============================================================
-   JOB BOARD (local-only)
+   JOB BOARD
    ============================================================ */
 function renderJobForm() {
   $('jobTitle').value = state.jobConfig.title;
@@ -2008,7 +1953,7 @@ $('jobForm').addEventListener('submit', e => {
 });
 
 /* ============================================================
-   SETTINGS (local-only)
+   SETTINGS
    ============================================================ */
 function renderSettingsForm() {
   $('setName').value = state.settings.siteName;
@@ -2021,18 +1966,26 @@ $('settingsForm').addEventListener('submit', e => {
   saveLocalState();
   toast('Pengaturan disimpan', 'success');
 });
-$('resetBtn').addEventListener('click', () => {
-  if (!confirm('Reset data LOKAL (vendor, driver, kendaraan, menu, dll)?\n\nData kategori & dokumen di server TIDAK akan terhapus.')) return;
+$('resetBtn').addEventListener('click', async () => {
+  const ok = await showConfirm({
+    title: 'Reset Data Lokal?',
+    message: 'Semua data lokal (vendor, driver, kendaraan, menu, pengaturan) akan dikembalikan ke default.\n\nData kategori, item, kendaraan, dokumen di server tidak akan terhapus.',
+    confirmText: 'Ya, Reset',
+    variant: 'warn',
+    icon: 'fa-solid fa-rotate-left',
+  });
+  if (!ok) return;
+
   localStorage.removeItem(LOCAL_KEY);
   location.reload();
 });
 
 /* ============================================================
-   REFRESH BUTTON
+   REFRESH
    ============================================================ */
 $('refreshBtn').addEventListener('click', async () => {
   toast('Memuat ulang…', 'info');
-  await loadCategories();
+  await Promise.all([loadCategories(), loadItems(), loadVehicles()]);
   await loadDocuments();
   renderSidebar();
   renderDashboard();
@@ -2059,32 +2012,21 @@ themeBtn.addEventListener('click', () => {
 });
 
 /* ============================================================
-   INIT
-   ============================================================ */
-(async function init() {
-  loadLocalState();
-  renderSidebar();
-  renderDashboard();
-  goAdmin('dashboard');
-
-  await loadCategories();
-  await loadDocuments();
-
-  // refresh tabel kategori kalau panelnya aktif
-  if (document.querySelector('.panel[data-panel="m_kategori"]')?.classList.contains('active')) {
-    renderMasterTable('kategori');
-  }
-})();
-/* ============================================================
    LOGOUT
    ============================================================ */
-const LOGOUT_URL = '/silog/auth/logout';   // ← sesuaikan route Anda
-const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const LOGOUT_URL = BASE + '/auth/logout';
 
-document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-  if (!confirm('Keluar dari admin panel?')) return;
+$('logoutBtn').addEventListener('click', async () => {
+  const ok = await showConfirm({
+    title: 'Keluar dari Admin Panel?',
+    message: 'Anda akan keluar dari sesi ini. Pastikan semua perubahan sudah tersimpan.',
+    confirmText: 'Ya, Keluar',
+    variant: 'warn',
+    icon: 'fa-solid fa-right-from-bracket',
+  });
+  if (!ok) return;
 
-  const btn = document.getElementById('logoutBtn');
+  const btn = $('logoutBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
@@ -2093,7 +2035,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
       method: 'POST',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-TOKEN': CSRF_TOKEN,
+        'X-CSRF-TOKEN': CSRF,
         'Accept': 'application/json',
       },
       credentials: 'same-origin',
@@ -2105,14 +2047,33 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
       try { json = await res.json(); } catch (_) {}
     }
 
-    // Redirect sesuai response
-    const target = json?.redirect || '/silog/login';
+    const target = json?.redirect || BASE + '/login';
     window.location.href = target;
   } catch (e) {
-    // kalau fetch gagal, tetap paksa ke login
-    window.location.href = '/silog/login';
+    window.location.href = BASE + '/login';
   }
 });
+
+/* ============================================================
+   INIT
+   ============================================================ */
+(async function init() {
+  loadLocalState();
+  renderSidebar();
+  renderDashboard();
+  goAdmin('dashboard');
+
+  await Promise.all([
+    loadCategories(),
+    loadItems(),
+    loadVehicles(),
+  ]);
+  await loadDocuments();
+
+  if (document.querySelector('.panel[data-panel="m_kategori"]')?.classList.contains('active')) {
+    renderMasterTable('kategori');
+  }
+})();
 </script>
 </body>
 </html>

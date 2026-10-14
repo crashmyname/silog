@@ -12,15 +12,16 @@ class CreateVehiclesTable
         
         //  Define columns here
         $table->id();
-        $table->string('name')->notNullable();
-        $table->string('slug')->unique();
-        $table->text('description')->nullable();
+        $table->string('plate_number')->notNullable()->unique();
+        $table->string('tonase')->nullable();
+        $table->string('jenis')->nullable();
+        $table->string('vendor')->nullable();
         $table->boolean('is_active')->default(1);
         $table->timestamps();
         $table->softDeletes();
         
         //  Add indexes
-        $table->index(['name']);
+        $table->index(['plate_number']);
         
         $sql = $table->buildCreateSQL();
         

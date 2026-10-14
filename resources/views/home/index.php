@@ -6,20 +6,15 @@
 <title>LogiBoard · Papan Informasi Logistik</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 <style>
-/* ============================================================
-   THEME TOKENS
-   ============================================================ */
 :root{
   --bg:#070b14; --bg-2:#0b1220;
   --surface:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.07);
   --surface-solid:#101828;
   --border:rgba(255,255,255,.09); --border-strong:rgba(255,255,255,.16);
   --text:#eaf0fb; --text-2:#9aa8c0; --text-3:#67748e;
-
   --brand:#3b82f6; --brand-2:#8b5cf6;
   --green:#22c55e; --amber:#f59e0b; --red:#ef4444;
   --cyan:#06b6d4; --pink:#ec4899; --purple:#a855f7;
-
   --radius:20px; --radius-sm:14px;
   --shadow:0 18px 48px rgba(0,0,0,.5);
   --shadow-sm:0 8px 22px rgba(0,0,0,.35);
@@ -34,11 +29,9 @@ html[data-theme="light"]{
   --surface:#ffffff; --surface-2:#f4f7fb; --surface-solid:#ffffff;
   --border:#e2e8f0; --border-strong:#cbd5e1;
   --text:#0b1424; --text-2:#475569; --text-3:#64748b;
-
   --brand:#1d4ed8; --brand-2:#6d28d9;
   --green:#15803d; --amber:#b45309; --red:#b91c1c;
   --cyan:#0e7490; --pink:#be185d; --purple:#7e22ce;
-
   --shadow:0 10px 30px rgba(15,23,42,.08);
   --shadow-sm:0 4px 14px rgba(15,23,42,.06);
   --glow:0 4px 14px rgba(15,23,42,.06);
@@ -46,10 +39,6 @@ html[data-theme="light"]{
   --card-title:20px; --num-font:28px;
   --ambient:0; --grid-opacity:0;
 }
-
-/* ============================================================
-   BASE
-   ============================================================ */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -78,9 +67,7 @@ body::after{
 }
 .app{max-width:1500px;margin:0 auto;padding:22px 22px 40px}
 
-/* ============================================================
-   TOPBAR
-   ============================================================ */
+/* TOPBAR */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:20px;
   background:var(--surface); border:1px solid var(--border);
@@ -105,7 +92,6 @@ body::after{
 .brand h1{font-size:var(--title-font);font-weight:800;letter-spacing:-.3px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand p{font-size:13px;color:var(--text-2);margin-top:3px}
-
 .top-right{display:flex;align-items:center;gap:14px}
 .clock-box{text-align:right;line-height:1.15;padding-right:6px}
 .clock-box .t{
@@ -118,7 +104,6 @@ html[data-theme="light"] .clock-box .t{
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .clock-box .d{font-size:12.5px;color:var(--text-2);margin-top:3px}
-
 .icon-btn{
   width:48px;height:48px;border-radius:14px;cursor:pointer;
   border:1px solid var(--border);background:var(--surface-2);color:var(--text);
@@ -135,16 +120,10 @@ html[data-theme="light"] .clock-box .t{
   background:linear-gradient(135deg,rgba(59,130,246,.25),rgba(139,92,246,.25));
 }
 
-/* ============================================================
-   PAGE SYSTEM
-   ============================================================ */
 .page{display:none;animation:pageIn .45s cubic-bezier(.22,1,.36,1) both}
 .page.active{display:block}
 @keyframes pageIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 
-/* ============================================================
-   HOME HERO
-   ============================================================ */
 .hero{
   margin-top:26px;padding:38px 34px;border-radius:24px;position:relative;overflow:hidden;
   background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(139,92,246,.12) 55%,rgba(6,182,212,.10));
@@ -192,9 +171,6 @@ html[data-theme="light"] .hero h2 span{
   font-variant-numeric:tabular-nums;color:var(--text)}
 .hero-stats .st small{font-size:12.5px;color:var(--text-2);font-weight:500}
 
-/* ============================================================
-   SECTION TITLE
-   ============================================================ */
 .section-title{
   display:flex;align-items:center;justify-content:space-between;
   gap:14px;margin:38px 4px 20px;flex-wrap:wrap;
@@ -204,9 +180,6 @@ html[data-theme="light"] .hero h2 span{
 .section-title h3 i{color:var(--brand)}
 .section-title p{font-size:13.5px;color:var(--text-2)}
 
-/* ============================================================
-   CARD GRID
-   ============================================================ */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:22px}
 .card{
   position:relative;overflow:hidden;cursor:pointer;
@@ -233,7 +206,6 @@ html[data-theme="light"] .card{background:#fff;box-shadow:0 4px 14px rgba(15,23,
   box-shadow:0 26px 60px color-mix(in srgb,var(--tone) 28%,transparent);
 }
 html[data-theme="light"] .card:hover{box-shadow:0 20px 42px rgba(15,23,42,.14)}
-.card:active{transform:translateY(-4px) scale(.995)}
 .card .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .card .icon{
   width:60px;height:60px;border-radius:17px;display:grid;place-items:center;
@@ -267,7 +239,6 @@ html[data-theme="light"] .card:hover{box-shadow:0 20px 42px rgba(15,23,42,.14)}
   border:1px solid color-mix(in srgb,var(--tone) 30%,transparent);
 }
 
-/* sub-menu smaller card */
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
 .menu-card{
   position:relative;cursor:pointer;border-radius:18px;padding:22px;
@@ -283,7 +254,6 @@ html[data-theme="light"] .menu-card{background:#fff}
   border-color:color-mix(in srgb,var(--tone) 55%,transparent);
   box-shadow:0 18px 42px color-mix(in srgb,var(--tone) 22%,transparent);
 }
-html[data-theme="light"] .menu-card:hover{box-shadow:0 16px 34px rgba(15,23,42,.12)}
 .menu-card .mi{
   width:52px;height:52px;border-radius:15px;display:grid;place-items:center;
   font-size:20px;color:#fff;margin-bottom:16px;
@@ -301,9 +271,6 @@ html[data-theme="light"] .menu-card:hover{box-shadow:0 16px 34px rgba(15,23,42,.
 .menu-card .go i{transition:transform .25s}
 .menu-card:hover .go i{transform:translateX(4px)}
 
-/* ============================================================
-   DETAIL HEAD
-   ============================================================ */
 .detail-head{
   display:flex;align-items:center;gap:20px;flex-wrap:wrap;
   margin-top:22px;padding:24px 26px;border-radius:22px;
@@ -330,9 +297,6 @@ html[data-theme="light"] .detail-head{background:#fff}
 .detail-title h2{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text)}
 .detail-title p{font-size:13.5px;color:var(--text-2);margin-top:4px}
 
-/* ============================================================
-   ADMIN PANEL CARD (dipakai untuk view dokumen publik juga)
-   ============================================================ */
 .admin-card{
   border-radius:18px;padding:22px;
   background:var(--surface);border:1px solid var(--border);
@@ -346,11 +310,6 @@ html[data-theme="light"] .admin-card{background:#fff}
 }
 .admin-card > h3 i{color:var(--tone,var(--brand))}
 
-.form-group{margin-bottom:16px}
-.form-group label{
-  display:block;font-size:13px;font-weight:600;margin-bottom:8px;
-  color:var(--text-2);
-}
 .form-control{
   width:100%;padding:12px 14px;font-size:14px;font-family:inherit;
   background:var(--surface-2);color:var(--text);
@@ -361,7 +320,6 @@ html[data-theme="light"] .admin-card{background:#fff}
   outline:none;border-color:var(--brand);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 20%,transparent);
 }
-textarea.form-control{resize:vertical;min-height:80px;line-height:1.55}
 select.form-control{cursor:pointer;appearance:none;
   background-image:linear-gradient(45deg,transparent 50%,var(--text-2) 50%),
                    linear-gradient(135deg,var(--text-2) 50%,transparent 50%);
@@ -370,29 +328,19 @@ select.form-control{cursor:pointer;appearance:none;
   padding-right:38px;
 }
 
-/* ============================================================
-   BUTTONS
-   ============================================================ */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:9px;
   padding:12px 20px;font-size:14px;font-weight:700;font-family:inherit;
   border-radius:11px;cursor:pointer;border:none;text-decoration:none;
   transition:transform .2s,opacity .2s,background .2s;
 }
-.btn-block{width:100%}
 .btn-primary{background:var(--brand);color:#fff}
 .btn-primary:hover{transform:translateY(-2px);opacity:.92}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.btn-ghost{
-  background:var(--surface-2);color:var(--text);
-  border:1px solid var(--border);
-}
+.btn-ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
 .btn-ghost:hover{border-color:var(--brand)}
 .btn-sm{padding:8px 12px;font-size:12.5px;border-radius:9px}
 
-/* ============================================================
-   DOCUMENT LIST
-   ============================================================ */
 .doc-toolbar{
   display:flex;gap:12px;align-items:center;flex-wrap:wrap;
   margin-bottom:16px;
@@ -411,7 +359,6 @@ select.form-control{cursor:pointer;appearance:none;
   border-color:color-mix(in srgb,var(--tone) 50%,transparent);
   box-shadow:0 14px 30px color-mix(in srgb,var(--tone) 18%,transparent);
 }
-html[data-theme="light"] .doc-item:hover{box-shadow:0 12px 28px rgba(15,23,42,.10)}
 .doc-item .dh{display:flex;align-items:flex-start;gap:12px}
 .doc-item .df{
   width:44px;height:44px;flex:none;border-radius:12px;display:grid;place-items:center;
@@ -419,18 +366,11 @@ html[data-theme="light"] .doc-item:hover{box-shadow:0 12px 28px rgba(15,23,42,.1
   background:linear-gradient(135deg,var(--tone),color-mix(in srgb,var(--tone) 55%,#000));
 }
 .doc-item .dt{flex:1;min-width:0}
-.doc-item .dt b{
-  display:block;font-size:13.5px;font-weight:700;color:var(--text);
-  word-break:break-word;
-}
-.doc-item .dt small{
-  display:block;font-size:11.5px;color:var(--text-2);margin-top:4px;
-  word-break:break-all;
-}
+.doc-item .dt b{display:block;font-size:13.5px;font-weight:700;color:var(--text);word-break:break-word}
+.doc-item .dt small{display:block;font-size:11.5px;color:var(--text-2);margin-top:4px;word-break:break-all}
 .doc-item .dd{
   font-size:12.5px;color:var(--text-2);line-height:1.55;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
 .doc-item .dm{
   display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -453,35 +393,22 @@ html[data-theme="light"] .doc-item:hover{box-shadow:0 12px 28px rgba(15,23,42,.1
 .empty b{display:block;font-size:14.5px;font-weight:700;color:var(--text);margin-bottom:6px}
 .empty p{font-size:12.5px;color:var(--text-2);max-width:380px;margin:0 auto;line-height:1.6}
 
-/* ============================================================
-   PAGINATION
-   ============================================================ */
-.pagination{
-  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
-  margin-top:22px;width:100%;
-}
+.pagination{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:22px;width:100%}
 .pagination .page-btn{
   min-width:38px;height:38px;padding:0 12px;border-radius:9px;
   font-size:13px;font-weight:700;font-family:inherit;
   display:inline-flex;align-items:center;justify-content:center;
   background:var(--surface-2);color:var(--text);
-  border:1px solid var(--border);cursor:pointer;
-  transition:all .2s;
+  border:1px solid var(--border);cursor:pointer;transition:all .2s;
 }
 .pagination .page-btn:hover:not(:disabled){border-color:var(--brand);color:var(--brand)}
-.pagination .page-btn.active{
-  background:var(--brand);color:#fff;border-color:var(--brand);
-}
+.pagination .page-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
 .pagination .page-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* ============================================================
-   PLACEHOLDER (sub pages & job)
-   ============================================================ */
 .placeholder{
   margin-top:20px;padding:60px 30px;border-radius:22px;text-align:center;
   background:var(--surface);border:1px solid var(--border);
   backdrop-filter:blur(16px);box-shadow:var(--shadow-sm);
-  animation:cardIn .5s cubic-bezier(.22,1,.36,1) both;
 }
 html[data-theme="light"] .placeholder{background:#fff}
 .placeholder .ph-icon{
@@ -505,24 +432,18 @@ html[data-theme="light"] .placeholder{background:#fff}
 }
 .placeholder .pill-soon i{animation:blink 1.8s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
-
 .placeholder a.pill-soon.link{
   color:var(--brand);
   background:color-mix(in srgb,var(--brand) 12%,transparent);
   border-color:color-mix(in srgb,var(--brand) 34%,transparent);
-  text-decoration:none;
-  cursor:pointer;
+  text-decoration:none;cursor:pointer;
 }
-.placeholder a.pill-soon.link:hover{
-  background:color-mix(in srgb,var(--brand) 22%,transparent);
-}
+.placeholder a.pill-soon.link:hover{background:color-mix(in srgb,var(--brand) 22%,transparent)}
 
-/* Job page big CTA */
 .job-hero{
   margin-top:20px;padding:50px 34px;border-radius:24px;
   background:linear-gradient(135deg,rgba(245,158,11,.16),rgba(236,72,153,.12) 60%,rgba(168,85,247,.12));
   border:1px solid var(--border);box-shadow:var(--glow);text-align:center;
-  animation:cardIn .55s cubic-bezier(.22,1,.36,1) both;
 }
 html[data-theme="light"] .job-hero{
   background:linear-gradient(135deg,#fff5e6,#fdeaf3 60%,#f3ebff);
@@ -544,18 +465,12 @@ html[data-theme="light"] .job-hero{
   box-shadow:0 14px 32px rgba(245,158,11,.40);
   transition:transform .25s,box-shadow .25s;
 }
-.job-hero a.job-cta:hover{
-  transform:translateY(-3px);
-  box-shadow:0 20px 42px rgba(245,158,11,.5);
-}
+.job-hero a.job-cta:hover{transform:translateY(-3px);box-shadow:0 20px 42px rgba(245,158,11,.5)}
 .job-hero .note{
   margin-top:22px;font-size:12.5px;color:var(--text-3);
   display:inline-flex;align-items:center;gap:8px;
 }
 
-/* ============================================================
-   TICKER
-   ============================================================ */
 .ticker{
   margin-top:34px;overflow:hidden;border-radius:18px;
   background:var(--surface);border:1px solid var(--border);
@@ -573,9 +488,6 @@ html[data-theme="light"] .ticker{background:#fff}
 .ticker-item b{color:var(--text);font-weight:700}
 @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* ============================================================
-   TOAST
-   ============================================================ */
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translate(-50%,80px);
   padding:14px 22px;border-radius:14px;font-size:14px;font-weight:600;
@@ -583,83 +495,45 @@ html[data-theme="light"] .ticker{background:#fff}
   border:1px solid var(--border);box-shadow:var(--shadow);
   display:flex;align-items:center;gap:10px;
   opacity:0;transition:all .3s cubic-bezier(.22,1,.36,1);
-  z-index:1000;backdrop-filter:blur(20px);
-  pointer-events:none;max-width:90vw;
+  z-index:1000;backdrop-filter:blur(20px);pointer-events:none;max-width:90vw;
 }
 .toast.show{transform:translate(-50%,0);opacity:1}
 .toast-success{border-color:color-mix(in srgb,var(--green) 45%,transparent);color:var(--green)}
 .toast-error{border-color:color-mix(in srgb,var(--red) 45%,transparent);color:var(--red)}
 .toast-info{border-color:color-mix(in srgb,var(--brand) 45%,transparent);color:var(--brand)}
 
-/* ============================================================
-   FOOTER
-   ============================================================ */
 .footer{
   margin-top:30px;text-align:center;font-size:12.5px;color:var(--text-3);
   display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
 }
 .footer .sep{opacity:.5}
 
-/* ============================================================
-   SKELETON LOADER
-   ============================================================ */
-.skeleton{
-  background:linear-gradient(90deg,
-    var(--surface-2) 25%,
-    var(--surface) 50%,
-    var(--surface-2) 75%);
-  background-size:200% 100%;
-  animation:skel 1.4s ease-in-out infinite;
-  border-radius:8px;
-}
-@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .skeleton-card{
   height:180px;border-radius:14px;
-  background:linear-gradient(90deg,
-    var(--surface-2) 25%,
-    var(--surface) 50%,
-    var(--surface-2) 75%);
+  background:linear-gradient(90deg,var(--surface-2) 25%,var(--surface) 50%,var(--surface-2) 75%);
   background-size:200% 100%;
   animation:skel 1.4s ease-in-out infinite;
 }
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* ============================================================
-   PDF PREVIEW MODAL
-   ============================================================ */
+/* PDF MODAL */
 .pdf-modal-bg{
   position:fixed;inset:0;z-index:200;
-  background:rgba(7,11,20,.75);
-  backdrop-filter:blur(6px);
-  display:none;align-items:center;justify-content:center;
-  padding:24px;
-  animation:pdfFade .25s ease both;
+  background:rgba(7,11,20,.75);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:24px;
 }
 .pdf-modal-bg.active{display:flex}
 html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
-@keyframes pdfFade{from{opacity:0}to{opacity:1}}
-
 .pdf-modal{
   width:100%;max-width:1100px;height:92vh;
-  background:var(--surface-solid);
-  border:1px solid var(--border);
-  border-radius:18px;
-  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  background:var(--surface-solid);border:1px solid var(--border);
+  border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);
   display:flex;flex-direction:column;overflow:hidden;
-  animation:pdfScale .3s cubic-bezier(.22,1,.36,1) both;
 }
-@keyframes pdfScale{
-  from{opacity:0;transform:scale(.96) translateY(20px)}
-  to{opacity:1;transform:none}
-}
-html[data-theme="light"] .pdf-modal{
-  box-shadow:0 30px 80px rgba(15,23,42,.3);
-}
-
 .pdf-modal-head{
   padding:16px 20px;flex:none;
   display:flex;align-items:center;gap:14px;
-  border-bottom:1px solid var(--border);
-  background:var(--surface);
+  border-bottom:1px solid var(--border);background:var(--surface);
 }
 .pdf-modal-head .pdf-icon{
   width:42px;height:42px;flex:none;border-radius:11px;
@@ -669,73 +543,279 @@ html[data-theme="light"] .pdf-modal{
 }
 .pdf-modal-head .pdf-meta{flex:1;min-width:0}
 .pdf-modal-head .pdf-meta h3{
-  font-size:15px;font-weight:800;letter-spacing:-.2px;
-  color:var(--text);
+  font-size:15px;font-weight:800;letter-spacing:-.2px;color:var(--text);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .pdf-modal-head .pdf-meta p{
   font-size:12px;color:var(--text-2);margin-top:3px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.pdf-modal-actions{
-  display:flex;align-items:center;gap:8px;flex:none;
-}
+.pdf-modal-actions{display:flex;align-items:center;gap:8px;flex:none}
 .pdf-modal-actions .icon-act{
   width:38px;height:38px;border-radius:10px;
   display:grid;place-items:center;cursor:pointer;
   background:var(--surface-2);color:var(--text-2);
-  border:1px solid var(--border);
-  font-size:14px;text-decoration:none;
+  border:1px solid var(--border);font-size:14px;text-decoration:none;
   transition:all .2s;
 }
-.pdf-modal-actions .icon-act:hover{
-  color:var(--brand);border-color:var(--brand);
-  transform:translateY(-2px);
-}
-.pdf-modal-actions .icon-act.close:hover{
-  color:var(--red);border-color:var(--red);
-}
-
-.pdf-modal-body{
-  flex:1;min-height:0;position:relative;
-  background:var(--bg);
-}
-.pdf-modal-body iframe{
-  width:100%;height:100%;border:0;
-  background:#fff;
-}
-
-/* Loading spinner di dalam iframe container */
+.pdf-modal-actions .icon-act:hover{color:var(--brand);border-color:var(--brand);transform:translateY(-2px)}
+.pdf-modal-actions .icon-act.close:hover{color:var(--red);border-color:var(--red)}
+.pdf-modal-body{flex:1;min-height:0;position:relative;background:var(--bg)}
+.pdf-modal-body iframe{width:100%;height:100%;border:0;background:#fff}
 .pdf-loading{
   position:absolute;inset:0;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:14px;
-  background:var(--bg);
-  color:var(--text-2);font-size:13px;
-  z-index:2;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:var(--bg);color:var(--text-2);font-size:13px;z-index:2;
   transition:opacity .3s;
 }
 .pdf-loading.hide{opacity:0;pointer-events:none}
 .pdf-loading .spinner{
   width:38px;height:38px;border-radius:50%;
-  border:3px solid var(--border);
-  border-top-color:var(--brand);
+  border:3px solid var(--border);border-top-color:var(--brand);
   animation:spin .8s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Mobile */
-@media(max-width:760px){
-  .pdf-modal-bg{padding:0}
-  .pdf-modal{
-    max-width:100%;height:100vh;
-    border-radius:0;border:none;
-  }
-} 
-
 /* ============================================================
-   RESPONSIVE
+   DELIVERY BOARD
    ============================================================ */
+.board-toolbar{
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  margin-top:20px;padding:14px 18px;border-radius:16px;
+  background:var(--surface);border:1px solid var(--border);
+  backdrop-filter:blur(14px);box-shadow:var(--shadow-sm);
+}
+.board-toolbar .form-control{max-width:200px;flex:none}
+.board-toolbar .info{
+  margin-left:auto;font-size:13px;color:var(--text-2);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.board-toolbar .info b{color:var(--text)}
+
+.board-scroll{
+  margin-top:18px;
+  overflow:auto;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow:var(--shadow-sm);
+  backdrop-filter:blur(14px);
+  max-height:calc(100vh - 260px);
+}
+
+.board-table{
+  border-collapse:collapse;
+  font-size:11.5px;
+  min-width:100%;
+  table-layout:auto;
+}
+
+.board-table th,
+.board-table td{
+  border:1px solid var(--border);
+  padding:5px 6px;
+  white-space:nowrap;
+  vertical-align:middle;
+  text-align:center;
+  color:var(--text-2);
+}
+
+/* Sticky left columns */
+.board-table .stick-1{
+  position:sticky;left:0;z-index:3;
+  background:var(--bg-2);
+  min-width:200px;width:200px;max-width:200px;
+  text-align:left;
+  border-right:1px solid var(--border);
+  color:var(--text);
+  font-size:11px;
+  padding:6px 10px;
+}
+.board-table .stick-2{
+  position:sticky;left:200px;z-index:3;
+  background:var(--bg-2);
+  min-width:100px;width:100px;max-width:100px;
+  text-align:left;
+  border-right:1px solid var(--border);
+  font-size:10.5px;font-weight:600;color:var(--text-2);
+  padding:6px 10px;
+}
+.board-table .stick-3{
+  position:sticky;left:300px;z-index:3;
+  background:var(--bg-2);
+  min-width:80px;width:80px;max-width:80px;
+  text-align:center;
+  border-right:2px solid var(--border-strong);
+  color:var(--text);
+  font-size:11px;
+  font-weight:700;
+  padding:6px 8px;
+}
+
+/* Sticky header */
+.board-table thead th{
+  position:sticky;top:0;z-index:5;
+  background:var(--bg-2);
+  font-weight:700;
+  font-size:10.5px;letter-spacing:.4px;
+  text-transform:uppercase;color:var(--text-2);
+  padding:6px 8px;
+}
+.board-table thead th.stick-1,
+.board-table thead th.stick-2,
+.board-table thead th.stick-3{z-index:6;}
+
+/* Customer header */
+.cust-head{
+  background:linear-gradient(180deg,#1e40af,#1e3a8a) !important;
+  color:#fff !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  letter-spacing:.5px;
+  padding:8px 10px !important;
+  border-color:#0f172a !important;
+}
+
+/* Cycle header */
+.cycle-head{
+  background:color-mix(in srgb,var(--brand) 14%,var(--bg-2)) !important;
+  color:var(--brand) !important;
+  font-weight:800 !important;
+  font-size:10.5px !important;
+  padding:5px 6px !important;
+}
+.cycle-head-delivered{background:color-mix(in srgb,var(--green) 20%,var(--bg-2)) !important;color:var(--green) !important}
+.cycle-head-on_the_way{background:color-mix(in srgb,var(--brand) 20%,var(--bg-2)) !important;color:var(--brand) !important}
+.cycle-head-arrived{background:color-mix(in srgb,var(--amber) 20%,var(--bg-2)) !important;color:var(--amber) !important}
+.cycle-head-delayed{background:color-mix(in srgb,var(--red) 20%,var(--bg-2)) !important;color:var(--red) !important}
+.cycle-head-waiting{background:color-mix(in srgb,var(--text-3) 12%,var(--bg-2)) !important;color:var(--text-2) !important}
+.cycle-head-cancelled{background:color-mix(in srgb,var(--text-3) 8%,var(--bg-2)) !important;color:var(--text-3) !important}
+
+.row-label{
+  background:var(--bg-2) !important;
+  font-weight:700 !important;
+  color:var(--text-2) !important;
+  font-size:10.5px !important;
+  letter-spacing:.3px;
+  text-transform:uppercase;
+  text-align:left !important;
+}
+
+.cell-time{
+  font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--text);
+  font-size:11.5px;
+  padding:6px 8px;
+}
+.cell-time.empty{color:var(--text-3);font-weight:400}
+.cell-vehicle{
+  font-size:10.5px;color:var(--text);
+  max-width:200px;overflow:hidden;text-overflow:ellipsis;
+  padding:6px 8px;
+}
+.cell-vehicle.empty{color:var(--text-3);font-style:italic}
+
+.status-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:4px;
+  font-size:9.5px;font-weight:800;letter-spacing:.4px;
+  text-transform:uppercase;white-space:nowrap;
+}
+.st-waiting{background:rgba(148,163,184,.18);color:var(--text-2)}
+.st-on_the_way{background:rgba(59,130,246,.22);color:var(--brand)}
+.st-arrived{background:rgba(245,158,11,.22);color:var(--amber)}
+.st-delivered{background:rgba(34,197,94,.22);color:var(--green)}
+.st-delayed{background:rgba(239,68,68,.22);color:var(--red)}
+.st-cancelled{background:rgba(148,163,184,.12);color:var(--text-3)}
+
+/* Item sub-header row */
+.item-subheader th{
+  background:color-mix(in srgb,var(--brand) 8%,var(--bg-2)) !important;
+  color:var(--text) !important;
+  font-weight:800 !important;
+  font-size:10px !important;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+  padding:6px 8px !important;
+  border-top:2px solid var(--border-strong) !important;
+  border-bottom:1px solid var(--border-strong) !important;
+}
+.item-subheader th.stick-1,
+.item-subheader th.stick-2,
+.item-subheader th.stick-3{
+  text-align:left;
+  padding-left:10px !important;
+}
+.item-subheader th.stick-3{text-align:center;padding-left:6px !important}
+.item-subheader .sub-head-plan{
+  background:color-mix(in srgb,var(--accent,#2563eb) 10%,var(--bg-2)) !important;
+  color:var(--text-2) !important;
+}
+.item-subheader .sub-head-act{
+  background:color-mix(in srgb,var(--green) 10%,var(--bg-2)) !important;
+  color:var(--green) !important;
+}
+
+/* Item rows */
+.item-row td.stick-1{
+  font-family:'SF Mono',ui-monospace,monospace;
+  font-size:11px;font-weight:700;
+  color:var(--text);text-align:left;
+}
+.item-row td.stick-2{
+  font-size:10.5px;color:var(--text-2);font-weight:500;
+  text-transform:none;letter-spacing:0;text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.item-row td.stick-3{
+  text-align:center;
+  font-weight:700;
+  color:var(--text);
+}
+
+.cell-plan{
+  background:var(--surface-2) !important;
+  color:var(--text-2);
+  font-variant-numeric:tabular-nums;
+  font-size:11px;
+  padding:5px 6px;
+}
+.cell-actual{
+  background:color-mix(in srgb,var(--green) 8%,transparent) !important;
+  color:var(--green);
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  font-size:11.5px;
+  padding:5px 6px;
+}
+.cell-actual.mismatch{
+  background:color-mix(in srgb,var(--red) 12%,transparent) !important;
+  color:var(--red);
+}
+.cell-zero{color:var(--text-3) !important;font-weight:400 !important}
+
+.board-loading{
+  margin-top:18px;padding:60px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:18px;text-align:center;
+}
+.board-loading .spin{
+  width:38px;height:38px;border-radius:50%;
+  border:3px solid var(--border);border-top-color:var(--brand);
+  animation:spin .8s linear infinite;margin:0 auto 14px;
+}
+.board-loading p{color:var(--text-2);font-size:13px}
+
+.board-legend{
+  margin-top:14px;padding:12px 16px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;
+  display:flex;gap:22px;flex-wrap:wrap;
+  font-size:11.5px;color:var(--text-2);
+}
+.board-legend .item{display:flex;align-items:center;gap:6px}
+.board-legend .dot{width:10px;height:10px;border-radius:3px;flex:none}
+
 @media(max-width:760px){
   .app{padding:14px 14px 32px}
   .topbar{flex-direction:column;align-items:flex-start;padding:16px 18px;position:static}
@@ -745,6 +825,8 @@ html[data-theme="light"] .pdf-modal{
   .hero-stats{gap:20px}
   .card{padding:22px}
   .detail-head{padding:18px 20px}
+  .pdf-modal-bg{padding:0}
+  .pdf-modal{max-width:100%;height:100vh;border-radius:0;border:none}
   :root,html[data-theme="light"]{--base-font:15px}
 }
 </style>
@@ -753,7 +835,6 @@ html[data-theme="light"] .pdf-modal{
 
 <div class="app">
 
-  <!-- ================= TOPBAR ================= -->
   <header class="topbar">
     <div class="brand">
       <div class="logo"><i class="fa-solid fa-truck-fast"></i></div>
@@ -776,9 +857,6 @@ html[data-theme="light"] .pdf-modal{
     </div>
   </header>
 
-  <!-- ============================================================
-       HOME
-       ============================================================ -->
   <section class="page active" id="page-home">
     <div class="hero">
       <div class="hero-inner">
@@ -808,9 +886,6 @@ html[data-theme="light"] .pdf-modal{
     </div>
   </section>
 
-  <!-- ============================================================
-       DOKUMEN — VIEW ONLY
-       ============================================================ -->
   <section class="page" id="page-dokumen">
     <div class="detail-head">
       <button class="back-btn" data-back><i class="fa-solid fa-arrow-left"></i> Kembali</button>
@@ -835,9 +910,6 @@ html[data-theme="light"] .pdf-modal{
     </div>
   </section>
 
-  <!-- ============================================================
-       DELIVERY — MENU
-       ============================================================ -->
   <section class="page" id="page-delivery">
     <div class="detail-head">
       <button class="back-btn" data-back><i class="fa-solid fa-arrow-left"></i> Kembali</button>
@@ -852,9 +924,6 @@ html[data-theme="light"] .pdf-modal{
     <div class="menu-grid" id="menuDelivery" style="margin-top:20px"></div>
   </section>
 
-  <!-- ============================================================
-       SYSTEM — MENU
-       ============================================================ -->
   <section class="page" id="page-system">
     <div class="detail-head">
       <button class="back-btn" data-back><i class="fa-solid fa-arrow-left"></i> Kembali</button>
@@ -869,9 +938,6 @@ html[data-theme="light"] .pdf-modal{
     <div class="menu-grid" id="menuSystem" style="margin-top:20px"></div>
   </section>
 
-  <!-- ============================================================
-       JOB BOARD — REDIRECT
-       ============================================================ -->
   <section class="page" id="page-job">
     <div class="detail-head">
       <button class="back-btn" data-back><i class="fa-solid fa-arrow-left"></i> Kembali</button>
@@ -899,9 +965,6 @@ html[data-theme="light"] .pdf-modal{
     </div>
   </section>
 
-  <!-- ============================================================
-       SUB PAGE (untuk menu Delivery & System)
-       ============================================================ -->
   <section class="page" id="page-sub">
     <div class="detail-head">
       <button class="back-btn" id="subBack"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
@@ -916,9 +979,49 @@ html[data-theme="light"] .pdf-modal{
     <div class="placeholder" id="subPlaceholder" style="--tone:var(--brand)"></div>
   </section>
 
-  <!-- FOOTER -->
+  <section class="page" id="page-delivery-board">
+    <div class="detail-head">
+      <button class="back-btn" id="boardBack">
+        <i class="fa-solid fa-arrow-left"></i> Kembali
+      </button>
+      <div class="detail-title" style="--tone:var(--brand)">
+        <div class="icon"><i class="fa-solid fa-clipboard-check"></i></div>
+        <div>
+          <h2>Delivery Control Board</h2>
+          <p id="boardSubtitle">Papan monitoring pengiriman harian</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-toolbar">
+      <input type="date" id="boardDate" class="form-control" />
+      <button class="btn btn-primary btn-sm" id="boardReload">
+        <i class="fa-solid fa-rotate"></i> Muat Ulang
+      </button>
+      <div class="info">
+        <i class="fa-solid fa-clock"></i>
+        <span id="boardDayName">—</span>
+        <span>·</span>
+        <span>Diperbarui <b id="boardLastUpdate">—</b></span>
+      </div>
+    </div>
+
+    <div id="boardArea">
+      <div class="board-loading">
+        <div class="spin"></div>
+        <p>Memuat data papan…</p>
+      </div>
+    </div>
+
+    <div class="board-legend">
+      <div class="item"><span class="dot" style="background:var(--green)"></span> Actual = Plan</div>
+      <div class="item"><span class="dot" style="background:var(--red)"></span> Actual ≠ Plan</div>
+      <div class="item"><span class="dot" style="background:var(--border);border:1px solid var(--border-strong)"></span> Belum diisi</div>
+    </div>
+  </section>
+
   <div class="footer">
-    <span>LogiBoard v4.0</span>
+    <span>LogiBoard v4.2</span>
     <span class="sep">·</span>
     <span>Papan Informasi Logistik</span>
     <span class="sep">·</span>
@@ -926,9 +1029,7 @@ html[data-theme="light"] .pdf-modal{
   </div>
 
 </div>
-<!-- ============================================================
-     PDF PREVIEW MODAL
-     ============================================================ -->
+
 <div class="pdf-modal-bg" id="pdfModal">
   <div class="pdf-modal">
     <div class="pdf-modal-head">
@@ -957,13 +1058,7 @@ html[data-theme="light"] .pdf-modal{
 </div>
 
 <script>
-/* ============================================================
-   BASE PATH DETECTION
-   ============================================================ */
 const BASE = (function () {
-  // contoh: /silog/          → BASE = /silog
-  // contoh: /silog/index.php → BASE = /silog
-  // contoh: /                → BASE = ''
   const path = window.location.pathname;
   const idx  = path.lastIndexOf('/');
   if (idx === -1) return '';
@@ -972,25 +1067,14 @@ const BASE = (function () {
   return base;
 })();
 
-const URL_CATEGORIES = BASE + '/categories';
-const URL_DOCUMENTS  = BASE + '/documents';
-const URL_STATS      = BASE + '/stats';
-const URL_ADMIN      = BASE + '/admin';
+const URL_CATEGORIES  = BASE + '/categories';
+const URL_DOCUMENTS   = BASE + '/documents';
+const URL_STATS       = BASE + '/stats';
+const URL_ADMIN       = BASE + '/admin';
+const URL_BOARD_DATA  = BASE + '/delivery/board-data';
 
-console.log('[LogiBoard] BASE:', BASE);
-console.log('[LogiBoard] URLs:', {
-  categories: URL_CATEGORIES,
-  documents:  URL_DOCUMENTS,
-  stats:      URL_STATS,
-  admin:      URL_ADMIN,
-});
-
-/* Update tombol admin sesuai base path */
 document.getElementById('adminBtn').href = URL_ADMIN;
 
-/* ============================================================
-   KONFIGURASI MENU STATIS
-   ============================================================ */
 const DELIVERY_MENU = [
   { id:'actual',   title:'Actual Delivery',
     desc:'Realisasi pengiriman harian, bukti terima, dan status akhir tiap trip.',
@@ -1055,16 +1139,10 @@ const TICKER = [
   { i:'fa-clipboard-list',        t:'<b>Papan Manajemen Produksi</b> siap dibuka dari Job Board' }
 ];
 
-/* ============================================================
-   STATE
-   ============================================================ */
 const state = {
-  categories: [],       // dari backend
-  documents: [],        // dari backend
-  stats: {
-    documents: 0,
-    categories: 0,
-  },
+  categories: [],
+  documents: [],
+  stats: { documents: 0, categories: 0 },
   currentPage: 1,
   totalPages: 1,
   filterQuery: '',
@@ -1072,9 +1150,9 @@ const state = {
   isLoading: false,
 };
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
+let boardData = null;
+let boardTimer = null;
+
 const $  = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, m =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])
@@ -1112,9 +1190,6 @@ function toast(msg, type='info'){
   }, 3000);
 }
 
-/* ============================================================
-   FETCH HELPERS
-   ============================================================ */
 async function fetchJSON(url){
   const res = await fetch(url, {
     headers: {
@@ -1123,16 +1198,10 @@ async function fetchJSON(url){
     },
     credentials: 'same-origin',
   });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} untuk ${url}`);
-  }
+  if (!res.ok) throw new Error(`HTTP ${res.status} untuk ${url}`);
   return res.json();
 }
 
-/* ============================================================
-   LOAD: STATS
-   ============================================================ */
 async function loadStats(){
   try {
     const json = await fetchJSON(URL_STATS);
@@ -1145,9 +1214,6 @@ async function loadStats(){
   $('stDocs').textContent = state.stats.documents;
 }
 
-/* ============================================================
-   LOAD: CATEGORIES
-   ============================================================ */
 async function loadCategories(){
   try {
     const json = await fetchJSON(URL_CATEGORIES);
@@ -1159,9 +1225,6 @@ async function loadCategories(){
   syncCategoryDropdown();
 }
 
-/* ============================================================
-   LOAD: DOCUMENTS
-   ============================================================ */
 async function loadDocuments(){
   const params = new URLSearchParams();
   if (state.filterQuery)    params.set('q', state.filterQuery);
@@ -1173,10 +1236,8 @@ async function loadDocuments(){
 
   try {
     const json = await fetchJSON(URL_DOCUMENTS + '?' + params.toString());
-
     state.documents  = Array.isArray(json.data) ? json.data : [];
     state.totalPages = Number(json.pagination?.last_page) || 1;
-
     $('docCount').textContent = '(' + (json.pagination?.total ?? state.documents.length) + ')';
   } catch(e){
     console.warn('[LogiBoard] loadDocuments failed:', e.message);
@@ -1187,38 +1248,24 @@ async function loadDocuments(){
   } finally {
     state.isLoading = false;
   }
-
   renderDocuments();
 }
 
-/* ============================================================
-   RENDER SKELETON (loading placeholder)
-   ============================================================ */
 function renderDocumentSkeleton(){
   const el = $('docList');
   if (!el) return;
-  el.innerHTML = Array(6).fill(0).map(() =>
-    '<div class="skeleton-card"></div>'
-  ).join('');
+  el.innerHTML = Array(6).fill(0).map(() => '<div class="skeleton-card"></div>').join('');
 }
 
-/* ============================================================
-   SYNC CATEGORY DROPDOWN
-   ============================================================ */
 function syncCategoryDropdown(){
   const f = $('docFilter');
   if (!f) return;
   const cur = f.value;
   f.innerHTML = '<option value="">Semua kategori</option>' +
-    state.categories.map(c =>
-      `<option value="${c.id}">${esc(c.name)}</option>`
-    ).join('');
+    state.categories.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
   f.value = state.categories.some(c => String(c.id) === cur) ? cur : '';
 }
 
-/* ============================================================
-   RENDER HOME CARDS
-   ============================================================ */
 const cardsEl = $('cards');
 
 function renderHome(){
@@ -1245,7 +1292,6 @@ function renderHome(){
   $('stDocs').textContent = state.stats.documents;
 }
 
-/* pointer glow */
 cardsEl.addEventListener('pointermove', e => {
   const card = e.target.closest('.card');
   if (!card) return;
@@ -1254,9 +1300,6 @@ cardsEl.addEventListener('pointermove', e => {
   card.style.setProperty('--my', (e.clientY - r.top)  + 'px');
 });
 
-/* ============================================================
-   RENDER MENU (Delivery / System)
-   ============================================================ */
 function renderMenu(){
   $('menuDelivery').innerHTML = DELIVERY_MENU.map((m, i) => `
     <div class="menu-card" style="--tone:${m.tone};animation-delay:${i*.06}s"
@@ -1279,19 +1322,21 @@ function renderMenu(){
   `).join('');
 }
 
-/* klik menu card → sub page */
 document.addEventListener('click', e => {
   const mc = e.target.closest('[data-sub]');
   if (!mc) return;
-  goSub(mc.dataset.sub, mc.dataset.id);
+  const kind = mc.dataset.sub;
+  const id   = mc.dataset.id;
+
+  if (kind === 'delivery' && id === 'actual'){
+    goBoard();
+    return;
+  }
+  goSub(kind, id);
 });
 
-/* ============================================================
-   RENDER DOKUMEN (VIEW ONLY)
-   ============================================================ */
 function renderDocuments(){
   const el = $('docList');
-
   if (state.isLoading) return;
 
   if (state.documents.length === 0){
@@ -1344,9 +1389,6 @@ function renderDocuments(){
   renderPagination(el);
 }
 
-/* ============================================================
-   RENDER PAGINATION
-   ============================================================ */
 function renderPagination(container){
   if (state.totalPages <= 1) return;
 
@@ -1368,10 +1410,8 @@ function renderPagination(container){
     return btn;
   };
 
-  // Prev
   nav.appendChild(mkBtn('‹', state.currentPage - 1, false, state.currentPage <= 1));
 
-  // Nomor halaman (max 7 tombol + elipsis)
   const total = state.totalPages;
   const cur   = state.currentPage;
   const pages = [];
@@ -1400,18 +1440,13 @@ function renderPagination(container){
     }
   });
 
-  // Next
   nav.appendChild(mkBtn('›', state.currentPage + 1, false, state.currentPage >= total));
-
   container.appendChild(nav);
 }
 
-/* ============================================================
-   SEARCH & FILTER
-   ============================================================ */
 $('docSearch').addEventListener('input', debounce(() => {
-  state.filterQuery    = $('docSearch').value.trim();
-  state.currentPage    = 1;
+  state.filterQuery = $('docSearch').value.trim();
+  state.currentPage = 1;
   loadDocuments();
 }, 400));
 
@@ -1421,22 +1456,21 @@ $('docFilter').addEventListener('change', () => {
   loadDocuments();
 });
 
-/* ============================================================
-   ROUTING
-   ============================================================ */
-const PAGES = ['home','dokumen','delivery','system','job','sub'];
+const PAGES = ['home','dokumen','delivery','system','job','sub','delivery-board'];
 let currentSub = null;
 
 function go(page){
   if (!PAGES.includes(page)) page = 'home';
+  if (page !== 'delivery-board') stopBoardAutoRefresh();
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   $('page-' + page).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
 
-  if (page !== 'sub') history.replaceState(null,'','#' + page);
+  if (page !== 'sub' && page !== 'delivery-board') {
+    history.replaceState(null,'','#' + page);
+  }
 
-  // Lazy load dokumen saat pertama kali masuk
   if (page === 'dokumen' && state.documents.length === 0 && !state.isLoading){
     loadDocuments();
   }
@@ -1501,8 +1535,263 @@ cardsEl.addEventListener('click', e => {
 });
 
 /* ============================================================
-   TICKER
+   DELIVERY BOARD
    ============================================================ */
+const STATUS_LABELS = {
+  waiting:    'Waiting',
+  on_the_way: 'On The Way',
+  arrived:    'Arrived',
+  delivered:  'Delivered',
+  delayed:    'Delayed',
+  cancelled:  'Cancelled'
+};
+const DAY_NAMES = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+
+function goBoard(){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  $('page-delivery-board').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  history.replaceState(null,'','#delivery/actual');
+
+  const inp = $('boardDate');
+  if (!inp.value){
+    inp.value = new Date().toISOString().slice(0,10);
+  }
+
+  loadBoard();
+  startBoardAutoRefresh();
+}
+
+async function loadBoard(){
+  const date = $('boardDate').value;
+  if (!date) return;
+
+  const d = new Date(date + 'T00:00:00');
+  $('boardDayName').textContent = DAY_NAMES[d.getDay()] + ', ' + date;
+
+  $('boardArea').innerHTML = `
+    <div class="board-loading">
+      <div class="spin"></div>
+      <p>Memuat data papan…</p>
+    </div>`;
+
+  try {
+    const res = await fetch(URL_BOARD_DATA + '?date=' + encodeURIComponent(date), {
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin'
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    boardData = await res.json();
+    const now = new Date();
+    $('boardLastUpdate').textContent = now.toLocaleTimeString('id-ID',{hour12:false});
+    renderBoard();
+  } catch (e) {
+    $('boardArea').innerHTML = `
+      <div class="empty" style="margin-top:18px">
+        <i class="fa-solid fa-triangle-exclamation" style="color:var(--amber)"></i>
+        <b>Gagal memuat data papan</b>
+        <p>${esc(e.message)}</p>
+      </div>`;
+  }
+}
+
+function renderBoard(){
+  const wrap = $('boardArea');
+
+  const customers = boardData.customers || [];
+  const items = boardData.items || [];
+
+  if (!customers.length){
+    wrap.innerHTML = `
+      <div class="empty" style="margin-top:18px">
+        <i class="fa-solid fa-inbox"></i>
+        <b>Belum ada customer / cycle</b>
+        <p>Tambahkan customer + cycle di Admin Panel dulu.</p>
+      </div>`;
+    return;
+  }
+  if (!items.length){
+    wrap.innerHTML = `
+      <div class="empty" style="margin-top:18px">
+        <i class="fa-solid fa-box-open"></i>
+        <b>Belum ada item ICS</b>
+        <p>Tambahkan item ICS di Admin Panel dulu.</p>
+      </div>`;
+    return;
+  }
+
+  const COLS_PER_CYCLE = 2;
+
+  let html = '<div class="board-scroll"><table class="board-table">';
+
+  /* ==================== HEADER ==================== */
+  html += '<thead>';
+
+  /* Row 1: customer */
+  html += '<tr>';
+  html += '<th class="stick-1 cust-head" colspan="3" style="text-align:left">DESTINASI CUSTOMER</th>';
+  customers.forEach(c => {
+    const totalCols = c.cycles.length * COLS_PER_CYCLE;
+    html += `<th class="cust-head" colspan="${totalCols}">${esc(c.code_customer || '')} — ${esc(c.name || '')}</th>`;
+  });
+  html += '</tr>';
+
+  /* Row 2: cycle */
+  html += '<tr>';
+  html += '<th class="stick-1 cycle-head" colspan="3" style="text-align:left">CYCLE DELIVERY</th>';
+  customers.forEach(c => {
+    c.cycles.forEach(cc => {
+      const s = cc.status || 'waiting';
+      html += `<th class="cycle-head cycle-head-${s}" colspan="${COLS_PER_CYCLE}">CYCLE ${cc.cycle_number}</th>`;
+    });
+  });
+  html += '</tr>';
+
+  html += '</thead>';
+
+  /* ==================== BODY ==================== */
+  html += '<tbody>';
+
+  /* No Pol */
+  html += '<tr>';
+  html += '<td class="stick-1 row-label" colspan="3">No Pol · Tonase · Rental Truk</td>';
+  customers.forEach(c => {
+    c.cycles.forEach(cc => {
+      const v = cc.vehicle_note || '';
+      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-vehicle ${v ? '' : 'empty'}">${v ? esc(v) : '—'}</td>`;
+    });
+  });
+  html += '</tr>';
+
+  /* ETD From ISE */
+  html += '<tr>';
+  html += '<td class="stick-1 row-label" colspan="3">ETD From ISE</td>';
+  customers.forEach(c => {
+    c.cycles.forEach(cc => {
+      const t = cc.etd_plan ? cc.etd_plan.substring(0,5) : '';
+      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
+    });
+  });
+  html += '</tr>';
+
+  /* Actual Departure */
+  html += '<tr>';
+  html += '<td class="stick-1 row-label" colspan="3">Actual Departure from ISE</td>';
+  customers.forEach(c => {
+    c.cycles.forEach(cc => {
+      const t = cc.actual_departure ? cc.actual_departure.substring(0,5) : '';
+      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
+    });
+  });
+  html += '</tr>';
+
+  /* ETA At Customer */
+  html += '<tr>';
+  html += '<td class="stick-1 row-label" colspan="3">ETA at Customer</td>';
+  customers.forEach(c => {
+    c.cycles.forEach(cc => {
+      const t = cc.eta_plan ? cc.eta_plan.substring(0,5) : '';
+      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
+    });
+  });
+  html += '</tr>';
+
+  /* Actual Arrival */
+  html += '<tr>';
+  html += '<td class="stick-1 row-label" colspan="3">Actual Arrival at Customer</td>';
+  customers.forEach(c => {
+    c.cycles.forEach(cc => {
+      const t = cc.actual_arrival ? cc.actual_arrival.substring(0,5) : '';
+      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
+    });
+  });
+  html += '</tr>';
+
+  /* Status */
+  html += '<tr>';
+  html += '<td class="stick-1 row-label" colspan="3">Status</td>';
+  customers.forEach(c => {
+    c.cycles.forEach(cc => {
+      const s = cc.status || 'waiting';
+      const lbl = STATUS_LABELS[s] || s;
+      html += `<td colspan="${COLS_PER_CYCLE}"><span class="status-chip st-${s}">${esc(lbl)}</span></td>`;
+    });
+  });
+  html += '</tr>';
+
+  /* ==================== ITEM SUB-HEADER ==================== */
+  html += '<tr class="item-subheader">';
+  html += '<th class="stick-1">ICS NAME</th>';
+  html += '<th class="stick-2">TYPE</th>';
+  html += '<th class="stick-3">TOTAL</th>';
+  customers.forEach(c => {
+    c.cycles.forEach(() => {
+      html += `<th class="sub-head-plan">PLAN</th><th class="sub-head-act">ACTUAL</th>`;
+    });
+  });
+  html += '</tr>';
+
+  /* ==================== ITEM ROWS ==================== */
+  items.forEach(item => {
+    /* Total dijumlahkan dari semua cycle */
+    let totalAll = 0;
+    customers.forEach(c => {
+      c.cycles.forEach(cc => {
+        const found = (cc.items || []).find(x => x.item_id === item.id);
+        if (found) totalAll += (found.total_delivery || 0);
+      });
+    });
+
+    html += '<tr class="item-row">';
+    html += `<td class="stick-1">${esc(item.ics_code)}</td>`;
+    html += `<td class="stick-2">${esc(item.type || item.ics_name || '')}</td>`;
+    html += `<td class="stick-3">${totalAll || ''}</td>`;
+
+    customers.forEach(c => {
+      c.cycles.forEach(cc => {
+        const found = (cc.items || []).find(x => x.item_id === item.id);
+        const plan   = found ? found.plan_delivery   : 0;
+        const actual = found ? found.actual_delivery : 0;
+        const mismatch = found && plan !== actual && actual > 0;
+
+        /* PLAN */
+        html += `<td class="cell-plan ${plan ? '' : 'cell-zero'}">${plan || ''}</td>`;
+
+        /* ACTUAL */
+        if (actual > 0){
+          html += `<td class="cell-actual ${mismatch ? 'mismatch' : ''}">${actual}</td>`;
+        } else {
+          html += `<td class="cell-actual cell-zero"></td>`;
+        }
+      });
+    });
+
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  html += '</table></div>';
+
+  wrap.innerHTML = html;
+}
+
+function startBoardAutoRefresh(){
+  stopBoardAutoRefresh();
+  boardTimer = setInterval(loadBoard, 60000);
+}
+function stopBoardAutoRefresh(){
+  if (boardTimer){ clearInterval(boardTimer); boardTimer = null; }
+}
+
+$('boardBack').addEventListener('click', () => {
+  stopBoardAutoRefresh();
+  go('delivery');
+});
+$('boardReload').addEventListener('click', loadBoard);
+$('boardDate').addEventListener('change', loadBoard);
+
+/* TICKER & CLOCK */
 function renderTicker(){
   const html = TICKER.map(t =>
     `<div class="ticker-item"><i class="fa-solid ${t.i}"></i> ${t.t}</div>`
@@ -1510,9 +1799,6 @@ function renderTicker(){
   $('ticker').innerHTML = html + html;
 }
 
-/* ============================================================
-   CLOCK
-   ============================================================ */
 function tick(){
   const now = new Date();
   $('clockTime').textContent = now.toLocaleTimeString('id-ID',{hour12:false});
@@ -1523,9 +1809,7 @@ function tick(){
 tick();
 setInterval(tick, 1000);
 
-/* ============================================================
-   THEME
-   ============================================================ */
+/* THEME */
 const themeBtn = $('themeBtn');
 const root = document.documentElement;
 function applyTheme(t){
@@ -1543,103 +1827,65 @@ themeBtn.addEventListener('click', () => {
   localStorage.setItem('logiboard-theme', next);
 });
 
-/* ============================================================
-   PDF PREVIEW MODAL
-   ============================================================ */
-const pdfModal       = $('pdfModal');
-const pdfFrame       = $('pdfFrame');
-const pdfLoading     = $('pdfLoading');
-const pdfModalTitle  = $('pdfModalTitle');
-const pdfModalMeta   = $('pdfModalMeta');
-const pdfDownload    = $('pdfModalDownload');
+/* PDF PREVIEW */
+const pdfModal      = $('pdfModal');
+const pdfFrame      = $('pdfFrame');
+const pdfLoading    = $('pdfLoading');
+const pdfModalTitle = $('pdfModalTitle');
+const pdfModalMeta  = $('pdfModalMeta');
+const pdfDownload   = $('pdfModalDownload');
 
 function openPdfModal(url, title, meta){
-  // Set konten
   pdfModalTitle.textContent = title || 'Dokumen';
   pdfModalMeta.textContent  = meta  || '';
   pdfDownload.href          = url;
 
-  // Tampilkan modal
   pdfModal.classList.add('active');
   document.body.style.overflow = 'hidden';
-
-  // Tampilkan loading
   pdfLoading.classList.remove('hide');
-
-  // Set iframe ke PDF
   pdfFrame.src = url;
 
-  // Sembunyikan loading saat iframe selesai load
-  pdfFrame.onload = () => {
-    setTimeout(() => pdfLoading.classList.add('hide'), 300);
-  };
-
-  // Timeout fallback kalau load terlalu lama (5 detik)
+  pdfFrame.onload = () => setTimeout(() => pdfLoading.classList.add('hide'), 300);
   clearTimeout(window.__pdfTimeout);
-  window.__pdfTimeout = setTimeout(() => {
-    pdfLoading.classList.add('hide');
-  }, 5000);
+  window.__pdfTimeout = setTimeout(() => pdfLoading.classList.add('hide'), 5000);
 }
 
 function closePdfModal(){
   pdfModal.classList.remove('active');
   document.body.style.overflow = '';
-
-  // Reset iframe supaya PDF berhenti loading
-  setTimeout(() => {
-    pdfFrame.src = 'about:blank';
-  }, 300);
-
+  setTimeout(() => { pdfFrame.src = 'about:blank'; }, 300);
   clearTimeout(window.__pdfTimeout);
 }
 
-// Tombol close
 $('pdfModalClose').addEventListener('click', closePdfModal);
-
-// Klik backdrop untuk close
-pdfModal.addEventListener('click', e => {
-  if (e.target === pdfModal) closePdfModal();
-});
-
-// ESC untuk close
+pdfModal.addEventListener('click', e => { if (e.target === pdfModal) closePdfModal(); });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && pdfModal.classList.contains('active')){
-    closePdfModal();
-  }
+  if (e.key === 'Escape' && pdfModal.classList.contains('active')) closePdfModal();
 });
 
-// Delegasi klik tombol preview (pakai event delegation supaya
-// tetap bekerja meskipun doc-item di-render ulang)
 document.addEventListener('click', e => {
   const btn = e.target.closest('.preview-btn');
   if (!btn) return;
-
-  openPdfModal(
-    btn.dataset.previewUrl,
-    btn.dataset.previewTitle,
-    btn.dataset.previewMeta
-  );
+  openPdfModal(btn.dataset.previewUrl, btn.dataset.previewTitle, btn.dataset.previewMeta);
 });
 
-/* ============================================================
-   INIT
-   ============================================================ */
+/* INIT */
 (async function init(){
-  // Render static dulu agar halaman tampil cepat
   renderMenu();
   renderTicker();
   renderHome();
 
-  // Fetch dari backend
   await Promise.all([ loadStats(), loadCategories() ]);
-  renderHome(); // re-render dengan stat dari DB
+  renderHome();
 
-  // Routing berdasarkan hash
   const hash = location.hash.replace('#','');
   if (hash === 'dokumen'){
     go('dokumen');
+  } else if (hash === 'delivery/actual'){
+    goBoard();
   } else if (hash.startsWith('delivery/')){
-    go('delivery'); goSub('delivery', hash.split('/')[1]);
+    const subId = hash.split('/')[1];
+    go('delivery'); goSub('delivery', subId);
   } else if (hash.startsWith('system/')){
     go('system'); goSub('system', hash.split('/')[1]);
   } else {

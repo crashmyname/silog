@@ -12,15 +12,17 @@ class CreateCustomersTable
         
         //  Define columns here
         $table->id();
+        $table->string('code_customer')->unique();
         $table->string('name')->notNullable();
-        $table->string('slug')->unique();
-        $table->text('description')->nullable();
+        $table->text('address')->nullable();
+        $table->string('contact_person')->nullable();
+        $table->string('phone')->nullable();
         $table->boolean('is_active')->default(1);
         $table->timestamps();
         $table->softDeletes();
         
         //  Add indexes
-        $table->index(['name', 'slug']);
+        $table->index(['name', 'code_customer']);
         
         $sql = $table->buildCreateSQL();
         

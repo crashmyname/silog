@@ -8,5 +8,9 @@
     "2026_10_08_160158_create_vehicles_table.php",
     "2026_10_08_160213_create_warehouses_table.php",
     "2026_10_08_160222_create_routes_table.php",
-    "2026_10_08_160233_create_customers_table.php"
+    "2026_10_08_160233_create_customers_table.php",
+    "2026_10_14_150020_create_customer_cycles_table.php",
+    "2026_10_14_150246_create_items_table.php",
+    "2026_10_14_150643_create_actual_deliveries_table.php",
+    "2026_10_14_151018_create_actual_delivery_item_table.php"
 ]

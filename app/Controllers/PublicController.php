@@ -128,4 +128,100 @@ class PublicController extends BaseController
             'categories' => (int) $totalCats,
         ],200);
     }
+
+    /* ============================================================
+   DELIVERY BOARD DATA (PUBLIK) — GET /delivery/board-data
+   ============================================================ */
+    public function deliveryBoard(Request $request)
+    {
+        $date = $request->date ?? date('Y-m-d');
+
+        /* Semua customer aktif */
+        $customers = \App\Models\Customer::query()
+            ->where('is_active', '=', 1)
+            ->orderBy('code_customer', 'ASC')
+            ->get();
+
+        $result = [];
+
+        foreach ($customers as $c) {
+            $cycles = \App\Models\CustomerCycle::query()
+                ->where('customer_id', '=', $c->id)
+                ->whereNull('deleted_at')
+                ->orderBy('cycle_number', 'ASC')
+                ->get();
+
+            if (!count($cycles)) continue;
+
+            $cycleData = [];
+            foreach ($cycles as $cc) {
+                $delivery = \App\Models\ActualDelivery::query()
+                    ->where('delivery_date', '=', $date)
+                    ->where('customer_id', '=', $c->id)
+                    ->where('customer_cycle_id', '=', $cc->id)
+                    ->first();
+
+                $items = [];
+                if ($delivery) {
+                    $dItems = \App\Models\ActualDeliveryItem::query()
+                        ->where('delivery_id', '=', $delivery->id)
+                        ->get();
+
+                    foreach ($dItems as $it) {
+                        $master = \App\Models\Item::find($it->item_id);
+                        if (!$master) continue;
+                        $items[] = [
+                            'item_id'         => (int) $it->item_id,
+                            'ics_code'        => $master->ics_code,
+                            'total_delivery'  => (int) $it->total_delivery,
+                            'plan_delivery'   => (int) $it->plan_delivery,
+                            'actual_delivery' => (int) $it->actual_delivery,
+                        ];
+                    }
+                }
+
+                $cycleData[] = [
+                    'id'               => (int) $cc->id,
+                    'cycle_number'     => (int) $cc->cycle_number,
+                    'etd_plan'         => $cc->etd_from_ise,
+                    'eta_plan'         => $cc->eta_at_customer,
+                    'vehicle_note'     => $delivery?->vehicle_note,
+                    'actual_departure' => $delivery?->actual_departure,
+                    'actual_arrival'   => $delivery?->actual_arrival,
+                    'status'           => $delivery?->status ?? 'waiting',
+                    'notes'            => $delivery?->notes,
+                    'items'            => $items,
+                ];
+            }
+
+            $result[] = [
+                'id'      => (int) $c->id,
+                'code_customer'    => $c->code_customer,
+                'name'    => $c->name,
+                'cycles'  => $cycleData,
+            ];
+        }
+
+        /* Semua item ICS aktif */
+        $allItems = \App\Models\Item::query()
+            ->where('is_active', '=', 1)
+            ->orderBy('ics_code', 'ASC')
+            ->get();
+
+        $itemsList = [];
+        foreach ($allItems as $i) {
+            $itemsList[] = [
+                'id'       => (int) $i->id,
+                'ics_code' => $i->ics_code,
+                'ics_name' => $i->ics_name,
+                'type'     => $i->type,
+            ];
+        }
+
+        return $this->json([
+            'date'      => $date,
+            'customers' => $result,
+            'items'     => $itemsList,
+        ],200);
+    }
 }
