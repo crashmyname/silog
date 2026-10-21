@@ -891,12 +891,18 @@ const MASTERS = {
     ]
   },
 
-  /* ============ MASTER ITEM (ICS) ============ */
   item: {
     label:'Item ICS', singular:'Item', icon:'fa-box',
     desc:'Master item ICS untuk detail delivery.',
     backend: true,
-    endpoints: { list:'/admin/items/list', base:'/admin/items', idPattern:'/admin/{id}/items' },
+    importable: true,
+    endpoints: {
+      list:'/admin/items/list',
+      base:'/admin/items',
+      idPattern:'/admin/{id}/items',
+      import:'/admin/items/import',
+      template:'/admin/items/import-template',
+    },
     fields: [
       { k:'ics_code', l:'Kode ICS',  t:'text', req:1 },
       { k:'ics_name', l:'Nama Item', t:'text', req:1 },
@@ -911,12 +917,18 @@ const MASTERS = {
     ]
   },
 
-  /* ============ MASTER VEHICLE ============ */
   vehicle: {
     label:'Kendaraan', singular:'Kendaraan', icon:'fa-truck',
     desc:'Master kendaraan / armada logistik.',
     backend: true,
-    endpoints: { list:'/admin/vehicles/list', base:'/admin/vehicles', idPattern:'/admin/{id}/vehicles' },
+    importable: true,
+    endpoints: {
+      list:'/admin/vehicles/list',
+      base:'/admin/vehicles',
+      idPattern:'/admin/{id}/vehicles',
+      import:'/admin/vehicles/import',
+      template:'/admin/vehicles/import-template',
+    },
     fields: [
       { k:'plate_number', l:'No. Polisi', t:'text', req:1 },
       { k:'tonase',       l:'Tonase',     t:'text' },
@@ -931,10 +943,11 @@ const MASTERS = {
     ]
   },
 
-  /* ============ MASTER VENDOR (local) ============ */
   vendor: {
     label:'Vendor', singular:'Vendor', icon:'fa-building',
-    desc:'Data vendor / rekanan logistik (lokal).',
+    desc:'Data vendor / rekanan logistik.',
+    backend: true,
+    endpoints: { list:'/admin/vendors/list', base:'/admin/vendors', idPattern:'/admin/vendors/{id}' },
     fields: [
       { k:'kode',   l:'Kode Vendor', t:'text', req:1 },
       { k:'nama',   l:'Nama Vendor', t:'text', req:1 },
@@ -956,6 +969,8 @@ const MASTERS = {
   driver: {
     label:'Driver', singular:'Driver', icon:'fa-user-tie',
     desc:'Data pengemudi kendaraan logistik.',
+    backend: true,
+    endpoints: { list:'/admin/drivers/list', base:'/admin/drivers', idPattern:'/admin/drivers/{id}' },
     fields: [
       { k:'nip',    l:'NIP',    t:'text', req:1 },
       { k:'nama',   l:'Nama',   t:'text', req:1 },
@@ -996,6 +1011,8 @@ const MASTERS = {
   rute: {
     label:'Rute', singular:'Rute', icon:'fa-route',
     desc:'Master rute pengiriman antar kota.',
+    backend: true,
+    endpoints: { list:'/admin/routes/list', base:'/admin/routes', idPattern:'/admin/routes/{id}' },
     fields: [
       { k:'kode',      l:'Kode Rute', t:'text', req:1 },
       { k:'asal',      l:'Kota Asal', t:'text', req:1 },
@@ -1036,20 +1053,7 @@ let state = {
       desc:'Analisa dan program penghematan biaya angkutan barang per rute.',
       icon:'fa-coins', color:'#a855f7', url:'#' }
   ],
-  systemMenu: [
-    { id:'s1', title:'AHM Delivery', desc:'Sistem pengiriman unit AHM (Astra Honda Motor).',
-      icon:'fa-industry', color:'#ef4444', url:'#' },
-    { id:'s2', title:'HPM Delivery', desc:'Sistem pengiriman unit HPM (Honda Prospect Motor).',
-      icon:'fa-industry', color:'#3b82f6', url:'#' },
-    { id:'s3', title:'YIMM Delivery', desc:'Sistem pengiriman unit YIMM (Yamaha Indonesia Motor Mfg).',
-      icon:'fa-industry', color:'#f59e0b', url:'#' },
-    { id:'s4', title:'SIM Delivery', desc:'Sistem informasi manajemen delivery internal.',
-      icon:'fa-database', color:'#a855f7', url:'#' },
-    { id:'s5', title:'Kontrol Loading / Unloading', desc:'Monitoring aktivitas bongkar-muat barang di gudang.',
-      icon:'fa-truck-ramp-box', color:'#06b6d4', url:'#' },
-    { id:'s6', title:'GPS System Kontrol Delivery', desc:'Pemantauan posisi kendaraan dan rute pengiriman real-time.',
-      icon:'fa-satellite-dish', color:'#22c55e', url:'#' }
-  ],
+  systemMenu: [], // Dimuat dari API
   jobConfig: {
     title:'Papan Manajemen Produksi Logistik',
     desc:'Sistem untuk mengelola rencana produksi, monitor progres, dan koordinasi antar divisi logistik dalam satu papan terpusat.',
@@ -1062,14 +1066,14 @@ let state = {
 };
 
 /* ============================================================
-   LOCAL STORAGE
+   LOCAL STORAGE (Hanya untuk konten yang belum backend)
    ============================================================ */
 function loadLocalState() {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw);
-    ['vendor','driver','gudang','rute','deliveryMenu','systemMenu','jobConfig','settings'].forEach(k => {
+    ['deliveryMenu','jobConfig','settings'].forEach(k => {
       if (parsed[k] !== undefined) state[k] = parsed[k];
     });
   } catch (e) { console.warn('loadLocalState', e); }
@@ -1077,7 +1081,7 @@ function loadLocalState() {
 function saveLocalState() {
   try {
     const toSave = {};
-    ['vendor','driver','gudang','rute','deliveryMenu','systemMenu','jobConfig','settings'].forEach(k => {
+    ['deliveryMenu','jobConfig','settings'].forEach(k => {
       toSave[k] = state[k];
     });
     localStorage.setItem(LOCAL_KEY, JSON.stringify(toSave));
@@ -1101,9 +1105,25 @@ async function loadBackendMaster(key) {
   }
 }
 
+async function loadSystemMenu() {
+  try {
+    const res = await API.get(BASE + '/admin/system-menus/list');
+    state.systemMenu = (res.data || []).map(m => ({
+      id: m.id, title: m.title, desc: m.desc, icon: m.icon, color: m.color, url: m.url
+    }));
+    renderSidebar();
+  } catch (e) {
+    toast('Gagal memuat menu system: ' + e.message, 'error');
+    state.systemMenu = [];
+  }
+}
+
 async function loadCategories() { await loadBackendMaster('kategori'); refreshFilter(); }
 async function loadItems()      { await loadBackendMaster('item'); }
 async function loadVehicles()   { await loadBackendMaster('vehicle'); }
+async function loadVendors()    { await loadBackendMaster('vendor'); }
+async function loadDrivers()    { await loadBackendMaster('driver'); }
+async function loadRoutes()     { await loadBackendMaster('rute'); }
 
 let docPage = 1;
 
@@ -1192,9 +1212,16 @@ function goAdmin(target) {
             <h1>${esc(m.label)}</h1>
             <p>${esc(m.desc)}</p>
           </div>
-          <button class="btn btn-primary" data-new="${key}">
-            <i class="fa-solid fa-plus"></i> Tambah ${esc(m.singular)}
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${m.importable ? `
+              <button class="btn btn-ghost" data-import="${key}">
+                <i class="fa-solid fa-file-import"></i> Import EXCEL
+              </button>
+            ` : ''}
+            <button class="btn btn-primary" data-new="${key}">
+              <i class="fa-solid fa-plus"></i> Tambah ${esc(m.singular)}
+            </button>
+          </div>
         </div>
         <div class="card">
           <div class="toolbar">
@@ -1225,7 +1252,7 @@ function goAdmin(target) {
   if (target === 'dashboard') renderDashboard();
   if (target === 'docs')      { docPage = 1; loadCategories().then(loadDocuments); }
   if (target === 'delivery')  renderMenuTable('deliveryMenu');
-  if (target === 'system')    renderMenuTable('systemMenu');
+  if (target === 'system')    { loadSystemMenu().then(() => renderMenuTable('systemMenu')); }
   if (target === 'job')       renderJobForm();
   if (target === 'settings')  renderSettingsForm();
   if (target.startsWith('m_')) renderMasterTable(target.slice(2));
@@ -1236,6 +1263,9 @@ function goAdmin(target) {
 document.addEventListener('click', async e => {
   const nav = e.target.closest('[data-adm]');
   if (nav) { goAdmin(nav.dataset.adm); return; }
+
+  const ib = e.target.closest('[data-import]');
+  if (ib) { openImportModal(ib.dataset.import); return; }
 
   const nb = e.target.closest('[data-new]');
   if (nb) {
@@ -1254,7 +1284,7 @@ function renderDashboard() {
   const stats = [
     { l:'Total Dokumen', v:state.documents.length, i:'fa-file-lines' },
     { l:'Kategori',      v:state.kategori.length,  i:'fa-tags' },
-    { l:'Item ICB',      v:state.item.length,      i:'fa-box' },
+    { l:'Item ICS',      v:state.item.length,      i:'fa-box' },
     { l:'Kendaraan',     v:state.vehicle.length,   i:'fa-truck' },
     { l:'Vendor',        v:state.vendor.length,    i:'fa-building' },
     { l:'Driver',        v:state.driver.length,    i:'fa-user-tie' },
@@ -1298,7 +1328,7 @@ function renderDashboard() {
 }
 
 /* ============================================================
-   MASTER TABLE (generic — semua master)
+   MASTER TABLE
    ============================================================ */
 function renderMasterTable(key) {
   const m = MASTERS[key];
@@ -1394,7 +1424,6 @@ async function deleteMasterItem(key, id) {
   });
   if (!ok) return;
 
-  // Backend: panggil API
   if (m.backend) {
     try {
       const url = BASE + m.endpoints.idPattern.replace('{id}', id);
@@ -1408,7 +1437,6 @@ async function deleteMasterItem(key, id) {
     return;
   }
 
-  // Local
   state[key] = state[key].filter(x => String(x.id) !== String(id));
   saveLocalState();
   renderMasterTable(key);
@@ -1551,6 +1579,108 @@ function openMasterModal(key, editId) {
 }
 
 /* ============================================================
+   IMPORT EXCEL
+   ============================================================ */
+function openImportModal(key) {
+  const m = MASTERS[key];
+
+  const body = `
+    <div class="field">
+      <label>File Excel <span class="req">*</span></label>
+      <label class="file" id="imp_drop">
+        <input type="file" id="imp_file" accept=".xlsx,.xls,.csv" required />
+        <div class="fi"><i class="fa-solid fa-file-excel"></i></div>
+        <div class="ft" id="imp_name">Klik untuk pilih file Excel</div>
+        <div class="fs" id="imp_info">Format .xlsx / .xls · maks 10 MB</div>
+      </label>
+    </div>
+
+    <div style="background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12px;color:var(--text-2);line-height:1.7">
+      <b style="display:block;margin-bottom:6px;color:var(--text)">
+        <i class="fa-solid fa-circle-info" style="color:var(--accent)"></i> Petunjuk
+      </b>
+      1. Klik <b>Download Template</b> di bawah<br>
+      2. Isi data di Excel sesuai kolom<br>
+      3. Save (format <b>.xlsx</b>)<br>
+      4. Upload file di sini<br>
+      <span style="color:var(--text-3);font-size:11.5px;display:block;margin-top:6px">
+        Data dengan kode sama akan <b>diperbarui</b>, bukan duplikat.
+      </span>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-block" id="imp_template"
+            style="margin-top:12px;background:var(--green);color:#fff">
+      <i class="fa-solid fa-download"></i> Download Template Excel
+    </button>
+  `;
+
+  openModal('Import ' + m.singular, body, () => submitImport(key));
+
+  const drop = $('imp_drop');
+  const fi   = $('imp_file');
+
+  fi.addEventListener('change', () => {
+    const f = fi.files[0];
+    if (!f) return;
+    $('imp_name').textContent = f.name;
+    $('imp_info').textContent = (f.size / 1024).toFixed(1) + ' KB · siap diimport';
+    drop.classList.add('has-file');
+  });
+
+  $('imp_template').addEventListener('click', () => {
+    window.location.href = BASE + m.endpoints.template;
+  });
+}
+
+async function submitImport(key) {
+  const m = MASTERS[key];
+  const file = $('imp_file')?.files[0];
+
+  if (!file) { toast('Pilih file Excel dulu', 'error'); return; }
+
+  const btn = $('modalSave');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses…';
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  try {
+    const res = await API.post(BASE + m.endpoints.import, fd, true);
+
+    closeModal();
+    await loadBackendMaster(key);
+    renderMasterTable(key);
+    if ($('panel-dashboard')?.classList.contains('active')) renderDashboard();
+
+    const summary = res.summary || {};
+    const hasErrors = summary.errors && summary.errors.length > 0;
+
+    if (hasErrors) {
+      await showConfirm({
+        title: 'Import Selesai dengan Peringatan',
+        message:
+          `${res.message}\n\n` +
+          summary.errors.slice(0, 5).join('\n') +
+          (summary.errors.length > 5
+            ? `\n…dan ${summary.errors.length - 5} error lainnya.`
+            : ''),
+        variant: 'warn',
+        confirmText: 'OK',
+        confirmClass: 'btn-primary',
+      });
+    } else {
+      toast(res.message || 'Import selesai', 'success');
+    }
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+  }
+}
+
+/* ============================================================
    MENU TABLE (Delivery / System)
    ============================================================ */
 function renderMenuTable(listKey) {
@@ -1615,6 +1745,7 @@ document.addEventListener('click', async e => {
   if (dl) {
     const key = dl.dataset.delMenu;
     const id  = dl.dataset.id;
+    const isSystem = key === 'systemMenu';
     const item = state[key].find(x => String(x.id) === String(id));
     if (!item) return;
 
@@ -1626,18 +1757,30 @@ document.addEventListener('click', async e => {
     });
     if (!ok) return;
 
-    state[key] = state[key].filter(x => String(x.id) !== String(id));
-    saveLocalState();
-    renderMenuTable(key);
-    renderSidebar();
-    toast('Menu dihapus', 'success');
+    if (isSystem) {
+      try {
+        await API.del(BASE + `/admin/system-menus/${id}`);
+        toast('Sistem dihapus', 'success');
+        await loadSystemMenu();
+        renderMenuTable('systemMenu');
+      } catch (err) {
+        toast(err.message, 'error');
+      }
+    } else {
+      state[key] = state[key].filter(x => String(x.id) !== String(id));
+      saveLocalState();
+      renderMenuTable(key);
+      renderSidebar();
+      toast('Menu dihapus', 'success');
+    }
   }
 });
 
 function openMenuModal(listKey, editId) {
+  const isSystem = listKey === 'systemMenu';
   const list = state[listKey];
   const item = editId ? list.find(x => String(x.id) === String(editId)) : null;
-  const singular = listKey === 'deliveryMenu' ? 'Menu Delivery' : 'Sistem';
+  const singular = isSystem ? 'Sistem' : 'Menu Delivery';
 
   const body = `
     <div class="field">
@@ -1668,7 +1811,7 @@ function openMenuModal(listKey, editId) {
     </div>
   `;
 
-  openModal((item ? 'Edit ' : 'Tambah ') + singular, body, () => {
+  openModal((item ? 'Edit ' : 'Tambah ') + singular, body, async () => {
     const title = $('mf_title').value.trim();
     const desc  = $('mf_desc').value.trim();
     const url   = $('mf_url').value.trim() || '#';
@@ -1677,17 +1820,40 @@ function openMenuModal(listKey, editId) {
     if (!title) { toast('Judul wajib diisi', 'error'); $('mf_title').focus(); return; }
     if (!desc)  { toast('Deskripsi wajib diisi', 'error'); $('mf_desc').focus(); return; }
 
-    if (item) {
-      Object.assign(item, { title, desc, url, icon, color });
-      toast(singular + ' diperbarui', 'success');
+    if (isSystem) {
+      const btn = $('modalSave');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan…';
+      try {
+        const payload = { title, description: desc, url, icon, color };
+        if (item) {
+          await API.put(BASE + `/admin/system-menus/${item.id}`, payload);
+        } else {
+          await API.post(BASE + '/admin/system-menus', payload);
+        }
+        toast('Sistem diperbarui', 'success');
+        closeModal();
+        await loadSystemMenu();
+        renderMenuTable('systemMenu');
+      } catch (e) {
+        toast(e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+      }
     } else {
-      list.push({ id:uid(), title, desc, url, icon, color });
-      toast(singular + ' ditambahkan', 'success');
+      if (item) {
+        Object.assign(item, { title, desc, url, icon, color });
+        toast(singular + ' diperbarui', 'success');
+      } else {
+        list.push({ id:uid(), title, desc, url, icon, color });
+        toast(singular + ' ditambahkan', 'success');
+      }
+      saveLocalState();
+      closeModal();
+      renderMenuTable(listKey);
+      renderSidebar();
     }
-    saveLocalState();
-    closeModal();
-    renderMenuTable(listKey);
-    renderSidebar();
   });
 }
 
@@ -1985,7 +2151,10 @@ $('resetBtn').addEventListener('click', async () => {
    ============================================================ */
 $('refreshBtn').addEventListener('click', async () => {
   toast('Memuat ulang…', 'info');
-  await Promise.all([loadCategories(), loadItems(), loadVehicles()]);
+  await Promise.all([
+    loadCategories(), loadItems(), loadVehicles(),
+    loadVendors(), loadDrivers(), loadRoutes(), loadSystemMenu()
+  ]);
   await loadDocuments();
   renderSidebar();
   renderDashboard();
@@ -2067,6 +2236,10 @@ $('logoutBtn').addEventListener('click', async () => {
     loadCategories(),
     loadItems(),
     loadVehicles(),
+    loadVendors(),
+    loadDrivers(),
+    loadRoutes(),
+    loadSystemMenu()
   ]);
   await loadDocuments();
 

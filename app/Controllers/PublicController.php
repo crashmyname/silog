@@ -224,4 +224,23 @@ class PublicController extends BaseController
             'items'     => $itemsList,
         ],200);
     }
+
+    public function systemMenus()
+    {
+        $rows = \App\Models\SystemMenu::query()
+            ->where('is_active', '=', 1)
+            ->orderBy('sort_order', 'ASC')
+            ->get();
+
+        return $this->json([
+            'data' => array_map(fn($r) => [
+                'id'    => (int)$r->id,
+                'title' => $r->title,
+                'desc'  => $r->description,
+                'icon'  => $r->icon,
+                'color' => $r->color,
+                'url'   => $r->url,
+            ], $rows)
+        ], 200);
+    }
 }

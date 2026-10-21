@@ -6,10 +6,14 @@ use App\Controllers\AuthController;
 use App\Controllers\CategoryController;
 use App\Controllers\CustomerController;
 use App\Controllers\DocumentController;
+use App\Controllers\DriverController;
 use App\Controllers\HomeController;
 use App\Controllers\ItemController;
 use App\Controllers\PublicController;
+use App\Controllers\RouteController;
+use App\Controllers\SystemMenuController;
 use App\Controllers\VehicleController;
+use App\Controllers\VendorController;
 use Bpjs\Framework\Helpers\AuthMiddleware;
 use Bpjs\Framework\Helpers\Route;
 use Bpjs\Framework\Helpers\View;
@@ -27,6 +31,7 @@ Route::get('/file/secure', function () {
 });
 
 Route::get('/delivery/board-data', [PublicController::class, 'deliveryBoard']);
+Route::get('/system-menus', [PublicController::class, 'systemMenus']);
 Route::group([AuthMiddleware::class], function(){
     Route::get('/admin',[AdminController::class,'index']);
     Route::get('/admin/categories',[CategoryController::class,'index'])->name('category.index');
@@ -60,6 +65,8 @@ Route::group([AuthMiddleware::class], function(){
     Route::post  ('/admin/items',              [ItemController::class, 'store']);
     Route::put   ('/admin/{id}/items',         [ItemController::class, 'update']);
     Route::delete('/admin/{id}/items',         [ItemController::class, 'destroy']);
+    Route::post('/admin/items/import',            [ItemController::class, 'import']);
+    Route::get ('/admin/items/import-template',   [ItemController::class, 'importTemplate']);
 
     /* ============================================================
     MASTER VEHICLE
@@ -69,6 +76,8 @@ Route::group([AuthMiddleware::class], function(){
     Route::post  ('/admin/vehicles',           [VehicleController::class, 'store']);
     Route::put   ('/admin/{id}/vehicles',      [VehicleController::class, 'update']);
     Route::delete('/admin/{id}/vehicles',      [VehicleController::class, 'destroy']);
+    Route::post('/admin/vehicles/import',          [VehicleController::class, 'import']);          // ← baru
+    Route::get ('/admin/vehicles/import-template', [VehicleController::class, 'importTemplate']);
 
     /* ============================================================
     ACTUAL DELIVERY (transaksi)
@@ -80,6 +89,30 @@ Route::group([AuthMiddleware::class], function(){
     Route::delete('/admin/{id}/actual-delivery',    [ActualDeliveryController::class, 'destroy']);
     Route::get('/admin/actual-delivery/board',      [ActualDeliveryController::class, 'board']);
     Route::get('/admin/actual-delivery/board-data', [ActualDeliveryController::class, 'boardData']);
+
+    // System Menu
+    Route::get   ('/admin/system-menus/list', [SystemMenuController::class, 'list']);
+    Route::post  ('/admin/system-menus',      [SystemMenuController::class, 'store']);
+    Route::put   ('/admin/system-menus/{id}', [SystemMenuController::class, 'update']);
+    Route::delete('/admin/system-menus/{id}', [SystemMenuController::class, 'destroy']);
+
+    // Vendor
+    Route::get   ('/admin/vendors/list', [VendorController::class, 'list']);
+    Route::post  ('/admin/vendors',      [VendorController::class, 'store']);
+    Route::put   ('/admin/vendors/{id}', [VendorController::class, 'update']);
+    Route::delete('/admin/vendors/{id}', [VendorController::class, 'destroy']);
+
+    // Driver
+    Route::get   ('/admin/drivers/list', [DriverController::class, 'list']);
+    Route::post  ('/admin/drivers',      [DriverController::class, 'store']);
+    Route::put   ('/admin/drivers/{id}', [DriverController::class, 'update']);
+    Route::delete('/admin/drivers/{id}', [DriverController::class, 'destroy']);
+
+    // Rute
+    Route::get   ('/admin/routes/list', [RouteController::class, 'list']);
+    Route::post  ('/admin/routes',      [RouteController::class, 'store']);
+    Route::put   ('/admin/routes/{id}', [RouteController::class, 'update']);
+    Route::delete('/admin/routes/{id}', [RouteController::class, 'destroy']);
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });

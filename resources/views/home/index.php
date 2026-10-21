@@ -576,9 +576,7 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ============================================================
-   DELIVERY BOARD
-   ============================================================ */
+/* DELIVERY BOARD */
 .board-toolbar{
   display:flex;gap:12px;align-items:center;flex-wrap:wrap;
   margin-top:20px;padding:14px 18px;border-radius:16px;
@@ -620,7 +618,6 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
   color:var(--text-2);
 }
 
-/* Sticky left columns */
 .board-table .stick-1{
   position:sticky;left:0;z-index:3;
   background:var(--bg-2);
@@ -652,7 +649,6 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
   padding:6px 8px;
 }
 
-/* Sticky header */
 .board-table thead th{
   position:sticky;top:0;z-index:5;
   background:var(--bg-2);
@@ -665,7 +661,6 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
 .board-table thead th.stick-2,
 .board-table thead th.stick-3{z-index:6;}
 
-/* Customer header */
 .cust-head{
   background:linear-gradient(180deg,#1e40af,#1e3a8a) !important;
   color:#fff !important;
@@ -676,7 +671,6 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
   border-color:#0f172a !important;
 }
 
-/* Cycle header */
 .cycle-head{
   background:color-mix(in srgb,var(--brand) 14%,var(--bg-2)) !important;
   color:var(--brand) !important;
@@ -728,7 +722,6 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
 .st-delayed{background:rgba(239,68,68,.22);color:var(--red)}
 .st-cancelled{background:rgba(148,163,184,.12);color:var(--text-3)}
 
-/* Item sub-header row */
 .item-subheader th{
   background:color-mix(in srgb,var(--brand) 8%,var(--bg-2)) !important;
   color:var(--text) !important;
@@ -756,7 +749,6 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
   color:var(--green) !important;
 }
 
-/* Item rows */
 .item-row td.stick-1{
   font-family:'SF Mono',ui-monospace,monospace;
   font-size:11px;font-weight:700;
@@ -867,8 +859,8 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
         </div>
         <div class="hero-stats">
           <div class="st"><b id="stDocs">0</b><small>Dokumen terupload</small></div>
-          <div class="st"><b>4</b><small>Menu Delivery</small></div>
-          <div class="st"><b>6</b><small>Sistem internal</small></div>
+          <div class="st"><b id="stDelivery">4</b><small>Menu Delivery</small></div>
+          <div class="st"><b id="stSystems">0</b><small>Sistem internal</small></div>
           <div class="st"><b>1</b><small>Papan produksi</small></div>
         </div>
       </div>
@@ -931,7 +923,7 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
         <div class="icon"><i class="fa-solid fa-server"></i></div>
         <div>
           <h2>System</h2>
-          <p>Sistem internal logistik — tautan akan segera aktif</p>
+          <p>Sistem internal logistik</p>
         </div>
       </div>
     </div>
@@ -994,6 +986,9 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
     </div>
 
     <div class="board-toolbar">
+      <select id="boardCustomer" class="form-control" style="max-width:260px;flex:none">
+        <option value="">— Pilih Customer —</option>
+      </select>
       <input type="date" id="boardDate" class="form-control" />
       <button class="btn btn-primary btn-sm" id="boardReload">
         <i class="fa-solid fa-rotate"></i> Muat Ulang
@@ -1067,11 +1062,12 @@ const BASE = (function () {
   return base;
 })();
 
-const URL_CATEGORIES  = BASE + '/categories';
-const URL_DOCUMENTS   = BASE + '/documents';
-const URL_STATS       = BASE + '/stats';
-const URL_ADMIN       = BASE + '/admin';
-const URL_BOARD_DATA  = BASE + '/delivery/board-data';
+const URL_CATEGORIES    = BASE + '/categories';
+const URL_DOCUMENTS     = BASE + '/documents';
+const URL_STATS         = BASE + '/stats';
+const URL_ADMIN         = BASE + '/admin';
+const URL_BOARD_DATA    = BASE + '/delivery/board-data';
+const URL_SYSTEM_MENUS  = BASE + '/system-menus';
 
 document.getElementById('adminBtn').href = URL_ADMIN;
 
@@ -1090,26 +1086,7 @@ const DELIVERY_MENU = [
     icon:'fa-coins', tone:'var(--purple)' }
 ];
 
-const SYSTEM_MENU = [
-  { id:'ahm',     title:'AHM Delivery',
-    desc:'Sistem pengiriman unit AHM (Astra Honda Motor).',
-    icon:'fa-industry', tone:'var(--red)', url:'http://10.203.68.47:90/ahmdelivery' },
-  { id:'hpm',     title:'HPM Delivery',
-    desc:'Sistem pengiriman unit HPM (Honda Prospect Motor).',
-    icon:'fa-industry', tone:'var(--brand)', url:'http://10.203.68.47:90/HondaDelivery' },
-  { id:'yimm',    title:'YIMM Delivery',
-    desc:'Sistem pengiriman unit YIMM (Yamaha Indonesia Motor Mfg).',
-    icon:'fa-industry', tone:'var(--amber)', url:'http://10.203.68.47:90/yamahadelivery' },
-  { id:'sim',     title:'SIM Delivery',
-    desc:'Sistem informasi manajemen delivery internal.',
-    icon:'fa-database', tone:'var(--purple)', url:'http://10.203.68.47:90/SzkDelivery' },
-  { id:'loading', title:'Kontrol Loading / Unloading',
-    desc:'Monitoring aktivitas bongkar-muat barang di gudang.',
-    icon:'fa-truck-ramp-box', tone:'var(--cyan)', url:'http://10.203.68.47:90/TruckStat' },
-  { id:'gps',     title:'GPS System Kontrol Delivery',
-    desc:'Pemantauan posisi kendaraan dan rute pengiriman real-time.',
-    icon:'fa-satellite-dish', tone:'var(--green)', url:'#' }
-];
+let SYSTEM_MENU = []; /* diisi dari API /system-menus */
 
 const CARDS_HOME = [
   { id:'dokumen',  tone:'var(--brand)',  icon:'fa-folder-open',
@@ -1121,9 +1098,9 @@ const CARDS_HOME = [
     desc:'Actual Delivery, Log Book Problem, Patrol Kendaraan, dan Cost Down Freight.',
     stat:'4', lbl:'Sub-menu aktif' },
   { id:'system',   tone:'var(--purple)', icon:'fa-server',
-    title:'System', tag:'6 sistem',
-    desc:'AHM, HPM, YIMM, SIM Delivery, Kontrol Loading, dan GPS Kontrol Delivery.',
-    stat:'6', lbl:'Sistem internal' },
+    title:'System', tag:'sistem',
+    desc:'Sistem internal logistik yang terhubung (AHM, HPM, YIMM, SIM, Loading, GPS, dll).',
+    stat:'systems', lbl:'Sistem internal' },
   { id:'job',      tone:'var(--amber)',  icon:'fa-clipboard-list',
     title:'Job Board', tag:'Produksi',
     desc:'Buka papan manajemen produksi logistik untuk koordinasi antar divisi.',
@@ -1225,6 +1202,26 @@ async function loadCategories(){
   syncCategoryDropdown();
 }
 
+async function loadSystemMenus(){
+  try {
+    const json = await fetchJSON(URL_SYSTEM_MENUS);
+    SYSTEM_MENU = (Array.isArray(json.data) ? json.data : [])
+      .filter(m => m && m.title)
+      .map(m => ({
+        id:    String(m.id),
+        title: m.title,
+        desc:  m.desc || '',
+        icon:  m.icon || 'fa-circle',
+        tone:  m.color || 'var(--purple)',
+        url:   m.url || '#',
+      }));
+  } catch(e){
+    console.warn('[LogiBoard] loadSystemMenus failed:', e.message);
+    SYSTEM_MENU = [];
+  }
+  $('stSystems').textContent = SYSTEM_MENU.length;
+}
+
 async function loadDocuments(){
   const params = new URLSearchParams();
   if (state.filterQuery)    params.set('q', state.filterQuery);
@@ -1270,7 +1267,14 @@ const cardsEl = $('cards');
 
 function renderHome(){
   cardsEl.innerHTML = CARDS_HOME.map((c, i) => {
-    const statVal = c.stat === 'docs' ? state.stats.documents : c.stat;
+    let statVal;
+    if (c.stat === 'docs')        statVal = state.stats.documents;
+    else if (c.stat === 'systems') statVal = SYSTEM_MENU.length;
+    else                           statVal = c.stat;
+
+    let tag = c.tag;
+    if (c.id === 'system') tag = statVal + ' sistem';
+
     return `
       <article class="card" style="--tone:${c.tone};animation-delay:${i*.08}s" data-page="${c.id}">
         <div class="top">
@@ -1284,7 +1288,7 @@ function renderHome(){
             <div class="num">${statVal}</div>
             <div class="lbl">${c.lbl}</div>
           </div>
-          <span class="tag">${c.tag}</span>
+          <span class="tag">${tag}</span>
         </div>
       </article>
     `;
@@ -1300,7 +1304,7 @@ cardsEl.addEventListener('pointermove', e => {
   card.style.setProperty('--my', (e.clientY - r.top)  + 'px');
 });
 
-function renderMenu(){
+function renderDeliveryMenu(){
   $('menuDelivery').innerHTML = DELIVERY_MENU.map((m, i) => `
     <div class="menu-card" style="--tone:${m.tone};animation-delay:${i*.06}s"
          data-sub="delivery" data-id="${m.id}">
@@ -1310,13 +1314,25 @@ function renderMenu(){
       <span class="go">Buka <i class="fa-solid fa-arrow-right"></i></span>
     </div>
   `).join('');
+}
 
-  $('menuSystem').innerHTML = SYSTEM_MENU.map((m, i) => `
+function renderSystemMenu(){
+  const el = $('menuSystem');
+  if (!SYSTEM_MENU.length){
+    el.innerHTML = `
+      <div class="empty">
+        <i class="fa-solid fa-server"></i>
+        <b>Belum ada sistem</b>
+        <p>Tambahkan menu sistem melalui <b>Admin Panel</b> agar muncul di sini.</p>
+      </div>`;
+    return;
+  }
+  el.innerHTML = SYSTEM_MENU.map((m, i) => `
     <div class="menu-card" style="--tone:${m.tone};animation-delay:${i*.06}s"
          data-sub="system" data-id="${m.id}">
       <div class="mi"><i class="fa-solid ${m.icon}"></i></div>
-      <h4>${m.title}</h4>
-      <p>${m.desc}</p>
+      <h4>${esc(m.title)}</h4>
+      <p>${esc(m.desc)}</p>
       <span class="go">Buka <i class="fa-solid fa-arrow-right"></i></span>
     </div>
   `).join('');
@@ -1478,7 +1494,7 @@ function go(page){
 
 function goSub(kind, id){
   const list = kind === 'delivery' ? DELIVERY_MENU : SYSTEM_MENU;
-  const item = list.find(x => x.id === id);
+  const item = list.find(x => String(x.id) === String(id));
   if (!item) return;
   currentSub = { kind, id };
 
@@ -1534,9 +1550,7 @@ cardsEl.addEventListener('click', e => {
   if (card) go(card.dataset.page);
 });
 
-/* ============================================================
-   DELIVERY BOARD
-   ============================================================ */
+/* DELIVERY BOARD */
 const STATUS_LABELS = {
   waiting:    'Waiting',
   on_the_way: 'On The Way',
@@ -1583,8 +1597,16 @@ async function loadBoard(){
     if (!res.ok) throw new Error('HTTP ' + res.status);
 
     boardData = await res.json();
-    const now = new Date();
-    $('boardLastUpdate').textContent = now.toLocaleTimeString('id-ID',{hour12:false});
+
+    const sel = $('boardCustomer');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Pilih Customer —</option>' +
+      (boardData.customers || []).map(c =>
+        `<option value="${c.id}">${esc(c.code_customer || '')} — ${esc(c.name || '')}</option>`
+      ).join('');
+    sel.value = (boardData.customers || []).some(c => String(c.id) === cur) ? cur : '';
+
+    $('boardLastUpdate').textContent = new Date().toLocaleTimeString('id-ID',{hour12:false});
     renderBoard();
   } catch (e) {
     $('boardArea').innerHTML = `
@@ -1598,20 +1620,31 @@ async function loadBoard(){
 
 function renderBoard(){
   const wrap = $('boardArea');
+  const selectedId = $('boardCustomer').value;
 
-  const customers = boardData.customers || [];
-  const items = boardData.items || [];
-
-  if (!customers.length){
+  if (!selectedId) {
     wrap.innerHTML = `
       <div class="empty" style="margin-top:18px">
-        <i class="fa-solid fa-inbox"></i>
-        <b>Belum ada customer / cycle</b>
-        <p>Tambahkan customer + cycle di Admin Panel dulu.</p>
+        <i class="fa-solid fa-users"></i>
+        <b>Pilih customer dulu</b>
+        <p>Pilih customer dari dropdown di atas untuk menampilkan papan monitoring.</p>
       </div>`;
     return;
   }
-  if (!items.length){
+
+  const customer = (boardData.customers || []).find(c => String(c.id) === String(selectedId));
+  if (!customer) {
+    wrap.innerHTML = `
+      <div class="empty" style="margin-top:18px">
+        <i class="fa-solid fa-inbox"></i>
+        <b>Customer tidak ditemukan</b>
+        <p>Customer ini mungkin belum punya cycle.</p>
+      </div>`;
+    return;
+  }
+
+  const items = boardData.items || [];
+  if (!items.length) {
     wrap.innerHTML = `
       <div class="empty" style="margin-top:18px">
         <i class="fa-solid fa-box-open"></i>
@@ -1621,126 +1654,101 @@ function renderBoard(){
     return;
   }
 
+  const cycles = customer.cycles || [];
+  if (!cycles.length) {
+    wrap.innerHTML = `
+      <div class="empty" style="margin-top:18px">
+        <i class="fa-solid fa-inbox"></i>
+        <b>Customer ini belum punya cycle</b>
+        <p>Tambahkan cycle di Master Customer.</p>
+      </div>`;
+    return;
+  }
+
   const COLS_PER_CYCLE = 2;
 
   let html = '<div class="board-scroll"><table class="board-table">';
 
-  /* ==================== HEADER ==================== */
   html += '<thead>';
 
-  /* Row 1: customer */
   html += '<tr>';
   html += '<th class="stick-1 cust-head" colspan="3" style="text-align:left">DESTINASI CUSTOMER</th>';
-  customers.forEach(c => {
-    const totalCols = c.cycles.length * COLS_PER_CYCLE;
-    html += `<th class="cust-head" colspan="${totalCols}">${esc(c.code_customer || '')} — ${esc(c.name || '')}</th>`;
-  });
+  html += `<th class="cust-head" colspan="${cycles.length * COLS_PER_CYCLE}">${esc(customer.code_customer || '')} — ${esc(customer.name || '')}</th>`;
   html += '</tr>';
 
-  /* Row 2: cycle */
   html += '<tr>';
   html += '<th class="stick-1 cycle-head" colspan="3" style="text-align:left">CYCLE DELIVERY</th>';
-  customers.forEach(c => {
-    c.cycles.forEach(cc => {
-      const s = cc.status || 'waiting';
-      html += `<th class="cycle-head cycle-head-${s}" colspan="${COLS_PER_CYCLE}">CYCLE ${cc.cycle_number}</th>`;
-    });
+  cycles.forEach(cc => {
+    const s = cc.status || 'waiting';
+    html += `<th class="cycle-head cycle-head-${s}" colspan="${COLS_PER_CYCLE}">CYCLE ${cc.cycle_number}</th>`;
   });
   html += '</tr>';
 
   html += '</thead>';
-
-  /* ==================== BODY ==================== */
   html += '<tbody>';
 
-  /* No Pol */
   html += '<tr>';
   html += '<td class="stick-1 row-label" colspan="3">No Pol · Tonase · Rental Truk</td>';
-  customers.forEach(c => {
-    c.cycles.forEach(cc => {
-      const v = cc.vehicle_note || '';
-      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-vehicle ${v ? '' : 'empty'}">${v ? esc(v) : '—'}</td>`;
-    });
+  cycles.forEach(cc => {
+    const v = cc.vehicle_note || '';
+    html += `<td colspan="${COLS_PER_CYCLE}" class="cell-vehicle ${v ? '' : 'empty'}">${v ? esc(v) : '—'}</td>`;
   });
   html += '</tr>';
 
-  /* ETD From ISE */
   html += '<tr>';
   html += '<td class="stick-1 row-label" colspan="3">ETD From ISE</td>';
-  customers.forEach(c => {
-    c.cycles.forEach(cc => {
-      const t = cc.etd_plan ? cc.etd_plan.substring(0,5) : '';
-      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
-    });
+  cycles.forEach(cc => {
+    const t = cc.etd_plan ? cc.etd_plan.substring(0,5) : '';
+    html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
   });
   html += '</tr>';
 
-  /* Actual Departure */
   html += '<tr>';
   html += '<td class="stick-1 row-label" colspan="3">Actual Departure from ISE</td>';
-  customers.forEach(c => {
-    c.cycles.forEach(cc => {
-      const t = cc.actual_departure ? cc.actual_departure.substring(0,5) : '';
-      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
-    });
+  cycles.forEach(cc => {
+    const t = cc.actual_departure ? cc.actual_departure.substring(0,5) : '';
+    html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
   });
   html += '</tr>';
 
-  /* ETA At Customer */
   html += '<tr>';
   html += '<td class="stick-1 row-label" colspan="3">ETA at Customer</td>';
-  customers.forEach(c => {
-    c.cycles.forEach(cc => {
-      const t = cc.eta_plan ? cc.eta_plan.substring(0,5) : '';
-      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
-    });
+  cycles.forEach(cc => {
+    const t = cc.eta_plan ? cc.eta_plan.substring(0,5) : '';
+    html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
   });
   html += '</tr>';
 
-  /* Actual Arrival */
   html += '<tr>';
   html += '<td class="stick-1 row-label" colspan="3">Actual Arrival at Customer</td>';
-  customers.forEach(c => {
-    c.cycles.forEach(cc => {
-      const t = cc.actual_arrival ? cc.actual_arrival.substring(0,5) : '';
-      html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
-    });
+  cycles.forEach(cc => {
+    const t = cc.actual_arrival ? cc.actual_arrival.substring(0,5) : '';
+    html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
   });
   html += '</tr>';
 
-  /* Status */
   html += '<tr>';
   html += '<td class="stick-1 row-label" colspan="3">Status</td>';
-  customers.forEach(c => {
-    c.cycles.forEach(cc => {
-      const s = cc.status || 'waiting';
-      const lbl = STATUS_LABELS[s] || s;
-      html += `<td colspan="${COLS_PER_CYCLE}"><span class="status-chip st-${s}">${esc(lbl)}</span></td>`;
-    });
+  cycles.forEach(cc => {
+    const s = cc.status || 'waiting';
+    html += `<td colspan="${COLS_PER_CYCLE}"><span class="status-chip st-${s}">${esc(STATUS_LABELS[s] || s)}</span></td>`;
   });
   html += '</tr>';
 
-  /* ==================== ITEM SUB-HEADER ==================== */
   html += '<tr class="item-subheader">';
   html += '<th class="stick-1">ICS NAME</th>';
   html += '<th class="stick-2">TYPE</th>';
   html += '<th class="stick-3">TOTAL</th>';
-  customers.forEach(c => {
-    c.cycles.forEach(() => {
-      html += `<th class="sub-head-plan">PLAN</th><th class="sub-head-act">ACTUAL</th>`;
-    });
+  cycles.forEach(() => {
+    html += `<th class="sub-head-plan">PLAN</th><th class="sub-head-act">ACTUAL</th>`;
   });
   html += '</tr>';
 
-  /* ==================== ITEM ROWS ==================== */
   items.forEach(item => {
-    /* Total dijumlahkan dari semua cycle */
     let totalAll = 0;
-    customers.forEach(c => {
-      c.cycles.forEach(cc => {
-        const found = (cc.items || []).find(x => x.item_id === item.id);
-        if (found) totalAll += (found.total_delivery || 0);
-      });
+    cycles.forEach(cc => {
+      const found = (cc.items || []).find(x => x.item_id === item.id);
+      if (found) totalAll += (found.total_delivery || 0);
     });
 
     html += '<tr class="item-row">';
@@ -1748,23 +1756,18 @@ function renderBoard(){
     html += `<td class="stick-2">${esc(item.type || item.ics_name || '')}</td>`;
     html += `<td class="stick-3">${totalAll || ''}</td>`;
 
-    customers.forEach(c => {
-      c.cycles.forEach(cc => {
-        const found = (cc.items || []).find(x => x.item_id === item.id);
-        const plan   = found ? found.plan_delivery   : 0;
-        const actual = found ? found.actual_delivery : 0;
-        const mismatch = found && plan !== actual && actual > 0;
+    cycles.forEach(cc => {
+      const found = (cc.items || []).find(x => x.item_id === item.id);
+      const plan   = found ? found.plan_delivery   : 0;
+      const actual = found ? found.actual_delivery : 0;
+      const mismatch = found && plan !== actual && actual > 0;
 
-        /* PLAN */
-        html += `<td class="cell-plan ${plan ? '' : 'cell-zero'}">${plan || ''}</td>`;
-
-        /* ACTUAL */
-        if (actual > 0){
-          html += `<td class="cell-actual ${mismatch ? 'mismatch' : ''}">${actual}</td>`;
-        } else {
-          html += `<td class="cell-actual cell-zero"></td>`;
-        }
-      });
+      html += `<td class="cell-plan ${plan ? '' : 'cell-zero'}">${plan || ''}</td>`;
+      if (actual > 0) {
+        html += `<td class="cell-actual ${mismatch ? 'mismatch' : ''}">${actual}</td>`;
+      } else {
+        html += `<td class="cell-actual cell-zero"></td>`;
+      }
     });
 
     html += '</tr>';
@@ -1790,6 +1793,7 @@ $('boardBack').addEventListener('click', () => {
 });
 $('boardReload').addEventListener('click', loadBoard);
 $('boardDate').addEventListener('change', loadBoard);
+$('boardCustomer').addEventListener('change', renderBoard);
 
 /* TICKER & CLOCK */
 function renderTicker(){
@@ -1871,12 +1875,14 @@ document.addEventListener('click', e => {
 
 /* INIT */
 (async function init(){
-  renderMenu();
+  renderDeliveryMenu();
   renderTicker();
   renderHome();
 
-  await Promise.all([ loadStats(), loadCategories() ]);
+  await Promise.all([ loadStats(), loadCategories(), loadSystemMenus() ]);
+
   renderHome();
+  renderSystemMenu();
 
   const hash = location.hash.replace('#','');
   if (hash === 'dokumen'){
