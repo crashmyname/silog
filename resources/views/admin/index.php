@@ -871,6 +871,28 @@ const API = {
    MASTER SCHEMAS
    ============================================================ */
 const MASTERS = {
+  user: {
+    label:'User', singular:'User', icon:'fa-user-gear',
+    desc:'Akun pengguna yang dapat login ke Admin Panel.',
+    backend: true,
+    endpoints: {
+      list:'/admin/users/list',
+      base:'/admin/users',
+      idPattern:'/admin/users/{id}',
+    },
+    fields: [
+      { k:'name',     l:'Nama Lengkap', t:'text',     req:1 },
+      { k:'username', l:'Username',     t:'text',     req:1 },
+      { k:'role',     l:'Role',         t:'select',   opts:['SUPERADMIN','ADMIN','VIEWER'], def:'VIEWER' },
+      { k:'password', l:'Password',     t:'password', hint:'Kosongkan saat edit jika tidak ingin mengubah' },
+    ],
+    table: [
+      { k:'name',     l:'Nama',     cls:'strong' },
+      { k:'username', l:'Username' },
+      { k:'role',     l:'Role' },
+    ]
+  },
+  
   kategori: {
     label:'Kategori Dokumen', singular:'Kategori', icon:'fa-tags',
     desc:'Kategori untuk mengelompokkan dokumen.',
@@ -904,16 +926,18 @@ const MASTERS = {
       template:'/admin/items/import-template',
     },
     fields: [
-      { k:'ics_code', l:'Kode ICS',  t:'text', req:1 },
-      { k:'ics_name', l:'Nama Item', t:'text', req:1 },
-      { k:'type',     l:'Tipe',      t:'text' },
-      { k:'unit',     l:'Satuan',    t:'text', def:'PCS' },
+      { k:'ics_code',    l:'Kode ICS',    t:'text', req:1 },
+      { k:'part_number', l:'Part Number', t:'text', req:1 },
+      { k:'ics_name',    l:'Nama Item',   t:'text', req:1 },
+      { k:'type',        l:'Tipe',        t:'text' },
+      { k:'unit',        l:'Satuan',      t:'text', def:'PCS' },
     ],
     table: [
-      { k:'ics_code', l:'Kode ICS', cls:'strong' },
-      { k:'ics_name', l:'Nama' },
-      { k:'type',     l:'Tipe' },
-      { k:'unit',     l:'Satuan' },
+      { k:'ics_code',    l:'Kode ICS',    cls:'strong' },
+      { k:'part_number', l:'Part Number' },
+      { k:'ics_name',    l:'Nama' },
+      { k:'type',        l:'Tipe' },
+      { k:'unit',        l:'Satuan' },
     ]
   },
 
@@ -1120,6 +1144,7 @@ async function loadSystemMenu() {
 
 async function loadCategories() { await loadBackendMaster('kategori'); refreshFilter(); }
 async function loadItems()      { await loadBackendMaster('item'); }
+async function loadUsers() { await loadBackendMaster('user'); }
 async function loadVehicles()   { await loadBackendMaster('vehicle'); }
 async function loadVendors()    { await loadBackendMaster('vendor'); }
 async function loadDrivers()    { await loadBackendMaster('driver'); }
@@ -1495,6 +1520,9 @@ function attachModalPickers() {
 function fieldHTML(f, value) {
   const v = value ?? f.def ?? '';
   const req = f.req ? '<span class="req">*</span>' : '';
+  const hint = f.hint
+    ? `<div style="font-size:11.5px;color:var(--text-3);margin-top:5px">${esc(f.hint)}</div>`
+    : '';
   let inner = '';
   if (f.t === 'textarea') {
     inner = `<textarea class="textarea" id="f_${f.k}" ${f.req?'required':''} maxlength="300">${esc(v)}</textarea>`;
@@ -1514,10 +1542,12 @@ function fieldHTML(f, value) {
       <div class="icon-grid">
         ${ICONS.slice(0,16).map(ic => `<div class="icon-opt ${ic === v ? 'sel' : ''}" data-icon="${ic}"><i class="fa-solid ${ic}"></i></div>`).join('')}
       </div>`;
+  } else if (f.t === 'password') {
+    inner = `<input type="password" class="input" id="f_${f.k}" ${f.req?'required':''} autocomplete="new-password" value="" placeholder="••••••••" />`;
   } else {
     inner = `<input type="text" class="input" id="f_${f.k}" ${f.req?'required':''} value="${esc(v)}" />`;
   }
-  return `<div class="field"><label>${esc(f.l)}${req}</label>${inner}</div>`;
+  return `<div class="field"><label>${esc(f.l)}${req}</label>${inner}${hint}</div>`;
 }
 
 function openMasterModal(key, editId) {
@@ -1536,6 +1566,16 @@ function openMasterModal(key, editId) {
         el && el.focus();
         return;
       }
+    }
+
+    if ('password' in data && !data.password) {
+      delete data.password;
+    }
+
+    if (key === 'user' && !item && !data.password) {
+      toast('Password wajib diisi untuk user baru', 'error');
+      $('f_password').focus();
+      return;
     }
 
     const btn = $('modalSave');
@@ -2153,7 +2193,8 @@ $('refreshBtn').addEventListener('click', async () => {
   toast('Memuat ulang…', 'info');
   await Promise.all([
     loadCategories(), loadItems(), loadVehicles(),
-    loadVendors(), loadDrivers(), loadRoutes(), loadSystemMenu()
+    loadVendors(), loadDrivers(), loadRoutes(), loadSystemMenu(),
+    loadUsers()
   ]);
   await loadDocuments();
   renderSidebar();
@@ -2239,7 +2280,8 @@ $('logoutBtn').addEventListener('click', async () => {
     loadVendors(),
     loadDrivers(),
     loadRoutes(),
-    loadSystemMenu()
+    loadSystemMenu(),
+    loadUsers()
   ]);
   await loadDocuments();
 

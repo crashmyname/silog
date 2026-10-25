@@ -34,6 +34,7 @@ class ItemController extends BaseController
                 'id'       => (int) $r->id,
                 'ics_code' => $r->ics_code,
                 'ics_name' => $r->ics_name,
+                'part_number' => $r->part_number,
                 'type'     => $r->type,
                 'unit'     => $r->unit,
             ], $rows),
@@ -42,9 +43,11 @@ class ItemController extends BaseController
 
     public function store(Request $request)
     {
+        // SESUDAH
         if (!$request->validate([
-            // 'ics_code' => 'required|max:30',
-            'ics_name' => 'required|max:120',
+            // 'ics_code'    => 'required|max:30',
+            'part_number' => 'required|max:60',
+            'ics_name'    => 'required|max:120',
         ])) return $this->json(['errors' => $request->errors()], 422);
 
         if (Item::query()->where('ics_code', '=', $request->ics_code)->first()) {
@@ -54,6 +57,7 @@ class ItemController extends BaseController
         $i = Item::create([
             'ics_code' => strtoupper(trim($request->ics_code)),
             'ics_name' => trim($request->ics_name),
+            'part_number' => $request->part_number,
             'type'     => $request->type ?? null,
             'unit'     => $request->unit ?? 'PCS',
             'is_active'=> 1,
@@ -109,13 +113,14 @@ class ItemController extends BaseController
         $col = [
             'ics_code' => array_search('ics_code', $header),
             'ics_name' => array_search('ics_name', $header),
+            'part_number' => array_search('part_number', $header),
             'type'     => array_search('type',     $header),
             'unit'     => array_search('unit',     $header),
         ];
 
-        if ($col['ics_code'] === false || $col['ics_name'] === false) {
+        if ($col['ics_code'] === false || $col['ics_name'] === false || $col['part_number'] === false) {
             return $this->json([
-                'errors' => ['file' => 'Header wajib memuat kolom: ics_code, ics_name. Opsional: type, unit.']
+                'errors' => ['file' => 'Header wajib memuat kolom: ics_code, ics_name, part_number. Opsional: type, unit.']
             ], 422);
         }
 
@@ -131,6 +136,7 @@ class ItemController extends BaseController
 
             $icsCode = trim((string) ($row[$col['ics_code']] ?? ''));
             $icsName = trim((string) ($row[$col['ics_name']] ?? ''));
+            $partNumber = trim((string) ($row[$col['part_number']] ?? ''));
             $type    = $col['type'] !== false ? trim((string) ($row[$col['type']] ?? '')) : null;
             $unit    = $col['unit'] !== false ? trim((string) ($row[$col['unit']] ?? '')) : 'PCS';
 
@@ -144,6 +150,11 @@ class ItemController extends BaseController
             }
             if ($icsName === '') {
                 $errors[] = "Baris {$rowNum}: ics_name kosong.";
+                $skipped++;
+                continue;
+            }
+            if ($partNumber === '') {
+                $errors[] = "Baris {$rowNum}: part_number kosong.";
                 $skipped++;
                 continue;
             }
@@ -163,6 +174,7 @@ class ItemController extends BaseController
                     Item::create([
                         'ics_code'  => $icsCode,
                         'ics_name'  => $icsName,
+                        'part_number' => $partNumber,
                         'type'      => $type ?: null,
                         'unit'      => $unit ?: 'PCS',
                         'is_active' => 1,
@@ -196,33 +208,29 @@ class ItemController extends BaseController
         $sheet->setTitle('Items');
 
         /* Header */
-        $headers = ['ics_code', 'ics_name', 'type', 'unit'];
+        $headers = ['ics_code', 'part_number', 'ics_name', 'type', 'unit'];
         $sheet->fromArray($headers, null, 'A1');
 
-        /* Sample */
         $samples = [
-            ['HL-3C2BA', 'Holder Assy',   'Part', 'PCS'],
-            ['HC-3C56',  'Cover Bracket', 'Part', 'PCS'],
-            ['TL-3C33A', 'Tool Set',      'Part', 'PCS'],
+            ['HL-3C2BA', 'PN-001', 'Holder Assy',   'Part', 'PCS'],
+            ['HC-3C56',  'PN-002', 'Cover Bracket', 'Part', 'PCS'],
+            ['TL-3C33A', 'PN-003', 'Tool Set',      'Part', 'PCS'],
         ];
         $sheet->fromArray($samples, null, 'A2');
 
-        /* Style header */
-        $sheet->getStyle('A1:D1')->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
-        $sheet->getStyle('A1:D1')->getFill()
+        $sheet->getStyle('A1:E1')->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+        $sheet->getStyle('A1:E1')->getFill()
             ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setRGB('2563EB');
-        $sheet->getStyle('A1:D1')->getAlignment()
+        $sheet->getStyle('A1:E1')->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        /* Border semua sel */
         $lastRow = count($samples) + 1;
-        $sheet->getStyle("A1:D{$lastRow}")->getBorders()->getAllBorders()
+        $sheet->getStyle("A1:E{$lastRow}")->getBorders()->getAllBorders()
             ->setBorderStyle(Border::BORDER_THIN)
             ->getColor()->setRGB('CBD5E1');
 
-        /* Auto width */
-        foreach (range('A', 'D') as $c) {
+        foreach (range('A', 'E') as $c) {
             $sheet->getColumnDimension($c)->setAutoSize(true);
         }
 
@@ -256,6 +264,7 @@ class ItemController extends BaseController
         $i->update([
             'ics_code' => strtoupper(trim($request->ics_code)),
             'ics_name' => trim($request->ics_name),
+            'part_number' => $request->part_number,
             'type'     => $request->type ?? null,
             'unit'     => $request->unit ?? 'PCS',
         ]);

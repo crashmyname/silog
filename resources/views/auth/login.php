@@ -274,8 +274,8 @@ body{
       </form>
 
       <div class="hint">
-        <b><i class="fa-solid fa-circle-info"></i> Akun demo</b>
-        Username: <code>admin</code> · Password: <code>admin123</code>
+        <!-- <b><i class="fa-solid fa-circle-info"></i> Akun demo</b>
+        Username: <code>admin</code> · Password: <code>admin123</code> -->
       </div>
 
       <div class="form-footer">

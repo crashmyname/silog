@@ -12,6 +12,7 @@ use App\Controllers\ItemController;
 use App\Controllers\PublicController;
 use App\Controllers\RouteController;
 use App\Controllers\SystemMenuController;
+use App\Controllers\UserController;
 use App\Controllers\VehicleController;
 use App\Controllers\VendorController;
 use Bpjs\Framework\Helpers\AuthMiddleware;
@@ -34,6 +35,14 @@ Route::get('/delivery/board-data', [PublicController::class, 'deliveryBoard']);
 Route::get('/system-menus', [PublicController::class, 'systemMenus']);
 Route::group([AuthMiddleware::class], function(){
     Route::get('/admin',[AdminController::class,'index']);
+
+    // User management (admin only)
+    Route::get ('/admin/users/list',     [UserController::class, 'list']);
+    Route::post('/admin/users',          [UserController::class, 'store']);
+    Route::put ('/admin/users/{id}',     [UserController::class, 'update']);
+    Route::delete('/admin/users/{id}',   [UserController::class, 'destroy']);
+
+    // Category
     Route::get('/admin/categories',[CategoryController::class,'index'])->name('category.index');
     Route::get('/admin/categories/list', [CategoryController::class, 'list'])->name('category.list');
     Route::post('/admin/categories',[CategoryController::class,'store'])->name('category.create');
@@ -89,6 +98,8 @@ Route::group([AuthMiddleware::class], function(){
     Route::delete('/admin/{id}/actual-delivery',    [ActualDeliveryController::class, 'destroy']);
     Route::get('/admin/actual-delivery/board',      [ActualDeliveryController::class, 'board']);
     Route::get('/admin/actual-delivery/board-data', [ActualDeliveryController::class, 'boardData']);
+    Route::post('/admin/actual-delivery/import', [ActualDeliveryController::class, 'import']);
+    Route::post('/admin/actual-delivery/preview-import', [ActualDeliveryController::class, 'previewImport']);
 
     // System Menu
     Route::get   ('/admin/system-menus/list', [SystemMenuController::class, 'list']);

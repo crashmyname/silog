@@ -137,6 +137,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <a class="btn btn-primary" href="/silog/admin/actual-delivery/board">
         <i class="fa-solid fa-table-cells"></i> Lihat Papan
         </a>
+        <button class="btn btn-ghost" id="btnImportExcel" style="color:var(--green);border-color:var(--green)">
+          <i class="fa-solid fa-file-import"></i> Import Excel
+        </button>
+        <input type="file" id="fileImport" accept=".xlsx,.xls,.csv" style="display:none" />
         <a class="btn btn-ghost" href="/silog/admin">
         <i class="fa-solid fa-arrow-left"></i> Kembali
         </a>
@@ -183,6 +187,53 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     </div>
   </div>
 
+</div>
+
+<!-- MODAL PREVIEW IMPORT -->
+<div id="previewModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(15,23,42,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--panel);border-radius:12px;width:100%;max-width:1100px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.3);">
+    
+    <!-- HEADER -->
+    <div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
+      <h3 style="font-size:16px;font-weight:800;color:var(--text);"><i class="fa-solid fa-file-excel" style="color:var(--green)"></i> Preview Import</h3>
+      <button type="button" id="btnClosePreview" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);">&times;</button>
+    </div>
+
+    <!-- BODY -->
+    <div style="padding:20px;overflow-y:auto;flex:1;">
+      <div style="margin-bottom:14px;display:flex;gap:16px;font-size:13px;">
+        <span style="color:var(--green);font-weight:700;"><i class="fa-solid fa-check-circle"></i> <span id="cntValid">0</span> Baris Siap Masuk</span>
+        <span style="color:var(--red);font-weight:700;"><i class="fa-solid fa-times-circle"></i> <span id="cntInvalid">0</span> Baris Error</span>
+      </div>
+
+      <div style="border:1px solid var(--line);border-radius:8px;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left;">
+          <thead style="background:var(--panel-2);border-bottom:1px solid var(--line);">
+            <tr>
+              <th style="padding:10px;">Baris</th>
+              <th style="padding:10px;">Customer</th>
+              <th style="padding:10px;">Rute / Cycle</th>
+              <th style="padding:10px;">Tanggal</th>
+              <th style="padding:10px;">ICS Code</th>
+              <th style="padding:10px;">QTY</th>
+              <th style="padding:10px;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="previewTableBody">
+            <!-- Diisi via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="padding:16px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;background:var(--panel-2);border-radius:0 0 12px 12px;">
+      <button type="button" class="btn btn-ghost" id="btnCancelImport">Batal</button>
+      <button type="button" class="btn btn-primary" id="btnProcessImport" disabled>
+        <i class="fa-solid fa-cloud-arrow-up"></i> Proses Import
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -251,6 +302,142 @@ async function loadMasters() {
   sel.innerHTML = '<option value="">— Pilih customer —</option>' +
     customers.map(c => `<option value="${c.id}">${esc(c.code)} — ${esc(c.name)}</option>`).join('');
 }
+
+let currentImportFile = null;
+
+// 1. Trigger file dialog
+$('btnImportExcel').addEventListener('click', () => {
+    $('fileImport').click();
+});
+
+// 2. Saat file dipilih -> Tembak ke Preview API
+$('fileImport').addEventListener('change', async function() {
+    const file = this.files[0];
+    if (!file) return;
+
+    currentImportFile = file;
+    const btn = $('btnImportExcel');
+    const originalHtml = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menganalisa…';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const res = await fetch('/silog/admin/actual-delivery/preview-import', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': CSRF,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: formData
+        });
+
+        const json = await res.json();
+        
+        if (!res.ok) throw new Error(json.errors ? Object.values(json.errors)[0] : (json.message || 'Gagal analisa'));
+
+        renderPreview(json.rows);
+        $('previewModal').style.display = 'flex';
+
+    } catch (e) {
+        toast(e.message, 'error');
+        this.value = '';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    }
+});
+
+// 3. Render Tabel Preview
+function renderPreview(rows) {
+    const tbody = $('previewTableBody');
+    let validCount = 0, invalidCount = 0;
+    
+    tbody.innerHTML = rows.map(r => {
+        if (r.is_valid) validCount++;
+        else invalidCount++;
+
+        const bgColor = r.is_valid ? 'var(--green-soft)' : 'var(--red-soft)';
+        const txtColor = r.is_valid ? 'var(--green)' : 'var(--red)';
+        const statusIcon = r.is_valid ? 'fa-check-circle' : 'fa-times-circle';
+        const statusText = r.is_valid ? 'Valid' : r.error_msg;
+
+        return `
+            <tr style="border-bottom:1px solid var(--line-soft);background:${bgColor};color:${r.is_valid ? 'var(--text)' : txtColor};">
+                <td style="padding:10px;font-weight:700;">#${r.row_num}</td>
+                <td style="padding:10px;">${esc(r.raw_cust)}</td>
+                <td style="padding:10px;">${esc(r.raw_rute)}</td>
+                <td style="padding:10px;">${esc(r.date || r.raw_date)}</td>
+                <td style="padding:10px;">${esc(r.raw_ics)}</td>
+                <td style="padding:10px;font-weight:700;">${r.raw_qty}</td>
+                <td style="padding:10px;font-weight:700;"><i class="fa-solid ${statusIcon}"></i> ${esc(statusText)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    $('cntValid').textContent = validCount;
+    $('cntInvalid').textContent = invalidCount;
+
+    const btnProcess = $('btnProcessImport');
+    btnProcess.disabled = (validCount === 0);
+    btnProcess.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Proses Import (${validCount} Valid)`;
+}
+
+// 4. Aksi Tutup Modal
+function closePreviewModal() {
+    $('previewModal').style.display = 'none';
+    $('fileImport').value = '';
+    currentImportFile = null;
+}
+$('btnClosePreview').addEventListener('click', closePreviewModal);
+$('btnCancelImport').addEventListener('click', closePreviewModal);
+
+// 5. Eksekusi Import (Proses data valid)
+$('btnProcessImport').addEventListener('click', async () => {
+    if (!currentImportFile) return;
+
+    const btn = $('btnProcessImport');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan ke DB…';
+
+    const formData = new FormData();
+    formData.append('file', currentImportFile);
+
+    try {
+        const res = await fetch('/silog/admin/actual-delivery/import', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': CSRF,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: formData
+        });
+
+        const json = await res.json();
+        
+        if (!res.ok) throw new Error(json.message || 'Gagal import');
+
+        toast(json.message, 'success');
+        closePreviewModal();
+
+        // Refresh form jika sedang ada filter aktif
+        if ($('fltDate').value && $('fltCustomer').value) {
+            await loadDeliveries();
+        }
+
+    } catch (e) {
+        toast(e.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Proses Import';
+    }
+});
 
 /* ============================================================
    LOAD DELIVERY BY DATE + CUSTOMER

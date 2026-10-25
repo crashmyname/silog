@@ -821,6 +821,47 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
   .pdf-modal{max-width:100%;height:100vh;border-radius:0;border:none}
   :root,html[data-theme="light"]{--base-font:15px}
 }
+/* === PDF THUMBNAIL DI CARD DOKUMEN === */
+.doc-item .doc-preview{
+  position:relative;
+  width:100%;
+  aspect-ratio:210/297;      /* A4 portrait */
+  max-height:260px;
+  border-radius:12px;
+  overflow:hidden;
+  background:var(--surface);
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:border-color .2s, box-shadow .2s;
+}
+.doc-item .doc-preview:hover{
+  border-color:color-mix(in srgb,var(--tone) 55%,transparent);
+  box-shadow:0 10px 24px color-mix(in srgb,var(--tone) 20%,transparent);
+}
+.doc-item .doc-preview canvas{
+  max-width:100%;
+  max-height:100%;
+  display:block;
+  background:#fff;
+  border-radius:6px;
+  box-shadow:0 6px 16px rgba(0,0,0,.25);
+}
+.doc-item .doc-preview .pdf-ph{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;color:var(--text-3);
+}
+.doc-item .doc-preview .pdf-ph i{font-size:34px}
+.doc-item .doc-preview .pdf-ph small{font-size:11px;font-weight:600;letter-spacing:.3px}
+.doc-item .doc-preview .pdf-ph.loading i{animation:spin 1s linear infinite;color:var(--tone)}
+.doc-item .doc-preview .pdf-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.55);
+  color:#fff;font-size:13px;font-weight:800;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  opacity:0;transition:opacity .22s;
+}
+.doc-item .doc-preview:hover .pdf-overlay{opacity:1}
 </style>
 </head>
 <body>
@@ -1254,6 +1295,71 @@ function renderDocumentSkeleton(){
   el.innerHTML = Array(6).fill(0).map(() => '<div class="skeleton-card"></div>').join('');
 }
 
+/* ====== RENDER DOKUMEN (dengan preview thumbnail PDF) ====== */
+function renderDocuments(){
+  const el = $('docList');
+  if (state.isLoading) return;
+
+  if (state.documents.length === 0){
+    el.innerHTML = `
+      <div class="empty">
+        <i class="fa-solid fa-file-circle-plus"></i>
+        <b>Belum ada dokumen</b>
+        <p>Dokumen yang diupload melalui <b>Admin Panel</b> akan muncul di sini.</p>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = state.documents.map((d, i) => {
+    const tone = d.category_color || '#64748b';
+    const cat  = d.category_name  || 'Tanpa kategori';
+    const size = d.file_size_human || fmtSize(d.file_size);
+    const url  = d.download_url   || (BASE + '/documents/' + d.id + '/download');
+
+    return `
+      <div class="doc-item" style="--tone:${tone};animation-delay:${i*.03}s">
+
+        <div class="doc-preview"
+             data-pdf-url="${esc(url)}"
+             data-preview-url="${esc(url)}"
+             data-preview-title="${esc(d.title)}"
+             data-preview-meta="${esc(cat)} · ${esc(size)} · ${esc(d.original_name)}">
+          <div class="pdf-ph"><i class="fa-solid fa-file-pdf"></i><small>Memuat…</small></div>
+        </div>
+
+        <div class="dh">
+          <div class="df"><i class="fa-solid fa-file-pdf"></i></div>
+          <div class="dt">
+            <b>${esc(d.title)}</b>
+            <small><i class="fa-solid fa-paperclip"></i> ${esc(d.original_name)}</small>
+          </div>
+        </div>
+        ${d.description ? `<div class="dd">${esc(d.description)}</div>` : ''}
+        <div class="dm">
+          <span class="cattag">${esc(cat)}</span>
+          <span class="size">${size} · ${fmtDate(d.created_at)}</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm preview-btn"
+                  data-preview-url="${esc(url)}"
+                  data-preview-title="${esc(d.title)}"
+                  data-preview-meta="${esc(cat)} · ${esc(size)} · ${esc(d.original_name)}"
+                  style="flex:1;justify-content:center">
+            <i class="fa-solid fa-expand"></i> Perbesar
+          </button>
+          <a class="btn btn-ghost btn-sm" href="${esc(url)}" target="_blank"
+             style="flex:0 0 auto" title="Unduh">
+            <i class="fa-solid fa-download"></i>
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  observeDocPreviews();
+  renderPagination(el);
+}
+
 function syncCategoryDropdown(){
   const f = $('docFilter');
   if (!f) return;
@@ -1351,58 +1457,100 @@ document.addEventListener('click', e => {
   goSub(kind, id);
 });
 
-function renderDocuments(){
-  const el = $('docList');
-  if (state.isLoading) return;
+/* ====== PDF.js loader (lazy) ====== */
+const pdfjsReady = (async () => {
+  if (window.pdfjsLib) return window.pdfjsLib;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  return window.pdfjsLib;
+})();
 
-  if (state.documents.length === 0){
-    el.innerHTML = `
-      <div class="empty">
-        <i class="fa-solid fa-file-circle-plus"></i>
-        <b>Belum ada dokumen</b>
-        <p>Dokumen yang diupload melalui <b>Admin Panel</b> akan muncul di sini.</p>
-      </div>`;
+const pdfThumbCache = new Map(); // url -> canvas
+
+async function renderPdfThumb(previewEl){
+  const url = previewEl.dataset.pdfUrl;
+  if (!url || previewEl.dataset.rendered === '1') return;
+  previewEl.dataset.rendered = '1';
+
+  // cache hit
+  if (pdfThumbCache.has(url)){
+    previewEl.innerHTML = '';
+    previewEl.appendChild(pdfThumbCache.get(url).cloneNode(true));
+    _pdfOverlay(previewEl);
     return;
   }
 
-  el.innerHTML = state.documents.map((d, i) => {
-    const tone = d.category_color || '#64748b';
-    const cat  = d.category_name  || 'Tanpa kategori';
-    const size = d.file_size_human || fmtSize(d.file_size);
-    const url  = d.download_url   || (BASE + '/documents/' + d.id + '/download');
+  previewEl.innerHTML = `<div class="pdf-ph loading"><i class="fa-solid fa-circle-notch"></i><small>Memuat preview…</small></div>`;
 
-    return `
-      <div class="doc-item" style="--tone:${tone};animation-delay:${i*.03}s">
-        <div class="dh">
-          <div class="df"><i class="fa-solid fa-file-pdf"></i></div>
-          <div class="dt">
-            <b>${esc(d.title)}</b>
-            <small><i class="fa-solid fa-paperclip"></i> ${esc(d.original_name)}</small>
-          </div>
-        </div>
-        ${d.description ? `<div class="dd">${esc(d.description)}</div>` : ''}
-        <div class="dm">
-          <span class="cattag">${esc(cat)}</span>
-          <span class="size">${size} · ${fmtDate(d.created_at)}</span>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-primary btn-sm preview-btn"
-                  data-preview-url="${esc(url)}"
-                  data-preview-title="${esc(d.title)}"
-                  data-preview-meta="${esc(cat)} · ${esc(size)} · ${esc(d.original_name)}"
-                  style="flex:1;justify-content:center">
-            <i class="fa-solid fa-eye"></i> Lihat
-          </button>
-          <a class="btn btn-ghost btn-sm" href="${esc(url)}" target="_blank"
-             style="flex:0 0 auto" title="Unduh">
-            <i class="fa-solid fa-download"></i>
-          </a>
-        </div>
-      </div>
-    `;
-  }).join('');
+  try {
+    const pdfjsLib = await pdfjsReady;
+    const resp = await fetch(url, { credentials:'same-origin' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const buf  = await resp.arrayBuffer();
+    const pdf  = await pdfjsLib.getDocument({ data: buf }).promise;
+    const page = await pdf.getPage(1);
 
-  renderPagination(el);
+    // hitung scale agar pas di container
+    const base = page.getViewport({ scale:1 });
+    const box  = previewEl.getBoundingClientRect();
+    const tw = (box.width  || 220) - 16;
+    const th = (box.height || 300) - 16;
+    const scale = Math.min(tw / base.width, th / base.height);
+    const viewport = page.getViewport({ scale });
+
+    const dpr = window.devicePixelRatio || 1;
+    const canvas = document.createElement('canvas');
+    canvas.width  = Math.floor(viewport.width  * dpr);
+    canvas.height = Math.floor(viewport.height * dpr);
+
+    const ctx = canvas.getContext('2d');
+    await page.render({
+      canvasContext: ctx,
+      viewport,
+      transform: dpr !== 1 ? [dpr,0,0,dpr,0,0] : null,
+    }).promise;
+
+    pdfThumbCache.set(url, canvas);
+
+    previewEl.innerHTML = '';
+    previewEl.appendChild(canvas);
+    _pdfOverlay(previewEl);
+  } catch (e) {
+    console.warn('[LogiBoard] PDF preview gagal:', e);
+    previewEl.innerHTML = `<div class="pdf-ph"><i class="fa-solid fa-file-pdf"></i><small>Preview tidak tersedia</small></div>`;
+  }
+}
+
+function _pdfOverlay(el){
+  const ov = document.createElement('div');
+  ov.className = 'pdf-overlay';
+  ov.innerHTML = '<i class="fa-solid fa-eye"></i> Buka Dokumen';
+  el.appendChild(ov);
+}
+
+/* ====== Observer untuk lazy-load ====== */
+let pdfObserver = null;
+function observeDocPreviews(){
+  if (!pdfObserver){
+    pdfObserver = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting){
+          pdfObserver.unobserve(en.target);
+          renderPdfThumb(en.target);
+        }
+      });
+    }, { rootMargin:'250px 0px' });
+  }
+  document.querySelectorAll('.doc-preview:not([data-observed])').forEach(el => {
+    el.dataset.observed = '1';
+    pdfObserver.observe(el);
+  });
 }
 
 function renderPagination(container){
@@ -1643,8 +1791,8 @@ function renderBoard(){
     return;
   }
 
-  const items = boardData.items || [];
-  if (!items.length) {
+  const allItems = boardData.items || [];
+  if (!allItems.length) {
     wrap.innerHTML = `
       <div class="empty" style="margin-top:18px">
         <i class="fa-solid fa-box-open"></i>
@@ -1661,6 +1809,29 @@ function renderBoard(){
         <i class="fa-solid fa-inbox"></i>
         <b>Customer ini belum punya cycle</b>
         <p>Tambahkan cycle di Master Customer.</p>
+      </div>`;
+    return;
+  }
+
+  // ── Hanya tampilkan item yang punya plan/actual/total di salah satu cycle ──
+  const visibleItems = allItems.filter(item =>
+    cycles.some(cc => {
+      const found = (cc.items || []).find(x => x.item_id === item.id);
+      if (!found) return false;
+      return (
+        Number(found.plan_delivery   || 0) > 0 ||
+        Number(found.actual_delivery || 0) > 0 ||
+        Number(found.total_delivery  || 0) > 0
+      );
+    })
+  );
+
+  if (!visibleItems.length) {
+    wrap.innerHTML = `
+      <div class="empty" style="margin-top:18px">
+        <i class="fa-solid fa-clipboard-list"></i>
+        <b>Belum ada item yang direncanakan</b>
+        <p>Item akan tampil di sini setelah <b>plan delivery</b> diisi untuk customer ini.</p>
       </div>`;
     return;
   }
@@ -1744,7 +1915,7 @@ function renderBoard(){
   });
   html += '</tr>';
 
-  items.forEach(item => {
+  visibleItems.forEach(item => {
     let totalAll = 0;
     cycles.forEach(cc => {
       const found = (cc.items || []).find(x => x.item_id === item.id);
@@ -1871,6 +2042,16 @@ document.addEventListener('click', e => {
   const btn = e.target.closest('.preview-btn');
   if (!btn) return;
   openPdfModal(btn.dataset.previewUrl, btn.dataset.previewTitle, btn.dataset.previewMeta);
+});
+
+document.addEventListener('click', e => {
+  const pv = e.target.closest('.doc-preview');
+  if (!pv) return;
+  openPdfModal(
+    pv.dataset.previewUrl,
+    pv.dataset.previewTitle,
+    pv.dataset.previewMeta
+  );
 });
 
 /* INIT */

@@ -10,6 +10,8 @@ use App\Models\Item;
 use Bpjs\Framework\Helpers\BaseController;
 use Bpjs\Framework\Core\Request;
 use Bpjs\Framework\Helpers\View;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class ActualDeliveryController extends BaseController
 {
@@ -286,6 +288,22 @@ class ActualDeliveryController extends BaseController
 
         $itemsList = [];
         foreach ($allItems as $i) {
+            $hasPlan = false;
+            foreach ($result as $cust) {
+                foreach ($cust['cycles'] as $cyc) {
+                    foreach ($cyc['items'] as $it) {
+                        if ($it['item_id'] === (int) $i->id &&
+                            ($it['plan_delivery'] > 0 ||
+                            $it['actual_delivery'] > 0 ||
+                            $it['total_delivery'] > 0)) {
+                            $hasPlan = true;
+                            break 3;
+                        }
+                    }
+                }
+            }
+            if (!$hasPlan) continue;
+
             $itemsList[] = [
                 'id'       => (int) $i->id,
                 'ics_code' => $i->ics_code,
@@ -299,6 +317,316 @@ class ActualDeliveryController extends BaseController
             'customers' => $result,
             'items'     => $itemsList,
         ],200);
+    }
+
+        /* ============================================================
+       PREVIEW IMPORT — POST /admin/actual-delivery/preview-import
+       ============================================================ */
+    public function previewImport(Request $request)
+    {
+        $parsedData = $this->parseExcel($request);
+        
+        if (isset($parsedData['error'])) {
+            return $this->json(['errors' => ['file' => $parsedData['error']]], 422);
+        }
+
+        return $this->json([
+            'message' => 'Preview berhasil dimuat.',
+            'rows'    => $parsedData
+        ], 200);
+    }
+
+    /* ============================================================
+       PROSES IMPORT — POST /admin/actual-delivery/import
+       ============================================================ */
+        public function import(Request $request)
+    {
+        $parsedData = $this->parseExcel($request);
+        
+        if (isset($parsedData['error'])) {
+            return $this->json(['errors' => ['file' => $parsedData['error']]], 422);
+        }
+
+        $inserted = 0;
+        $updated  = 0;
+        $skipped  = 0;
+        $errors   = [];
+        $groupedData = [];
+
+        foreach ($parsedData as $row) {
+            if (!$row['is_valid']) {
+                $skipped++;
+                continue;
+            }
+
+            $key = $row['customer_id'] . '_' . $row['date'] . '_' . $row['cycle_id'];
+            if (!isset($groupedData[$key])) {
+                $groupedData[$key] = [
+                    'customer_id' => $row['customer_id'],
+                    'date'        => $row['date'],
+                    'cycle_id'    => $row['cycle_id'],
+                    'plates'      => [],
+                    'etd_plan'    => $row['etd_plan'],
+                    'eta_plan'    => $row['eta_plan'],
+                    'items'       => []
+                ];
+            }
+            
+            if ($row['no_pol'] && !in_array($row['no_pol'], $groupedData[$key]['plates'])) {
+                $groupedData[$key]['plates'][] = $row['no_pol'];
+            }
+
+            // Jumlahkan QTY (PERBAIKAN: gunakan raw_qty)
+            $itemFound = false;
+            foreach ($groupedData[$key]['items'] as &$existingItem) {
+                if ($existingItem['item_id'] === $row['item_id']) {
+                    $existingItem['qty'] += $row['raw_qty']; 
+                    $itemFound = true;
+                    break;
+                }
+            }
+            unset($existingItem);
+
+            if (!$itemFound) {
+                $groupedData[$key]['items'][] = [
+                    'item_id' => $row['item_id'],
+                    'qty'     => $row['raw_qty'] 
+                ];
+            }
+        }
+
+        // ==== SIMPAN KE DATABASE ====
+        foreach ($groupedData as $g) {
+            $existing = ActualDelivery::query()
+                ->where('delivery_date', '=', $g['date'])
+                ->where('customer_id', '=', $g['customer_id'])
+                ->where('customer_cycle_id', '=', $g['cycle_id'])
+                ->first();
+
+            $vehicleNote = count($g['plates']) > 0 ? implode(', ', $g['plates']) : null;
+
+            $payload = [
+                'delivery_date'     => $g['date'],
+                'customer_id'       => $g['customer_id'],
+                'customer_cycle_id' => $g['cycle_id'],
+                'vehicle_note'      => $vehicleNote,
+                'etd_plan'          => $g['etd_plan'],
+                'eta_plan'          => $g['eta_plan'],
+                'status'            => 'WAITING',
+                'created_by'        => $_SESSION['user_id'] ?? null,
+                'is_active'         => 1
+            ];
+
+            if ($existing) {
+                $existing->update($payload);
+                $deliveryId = $existing->id;
+                $updated++;
+            } else {
+                $created = ActualDelivery::create($payload);
+                $deliveryId = $created->id;
+                $inserted++;
+            }
+
+            ActualDeliveryItem::deleteWhere(['delivery_id' => $deliveryId]);
+            
+            foreach ($g['items'] as $it) {
+                ActualDeliveryItem::create([
+                    'delivery_id'     => $deliveryId,
+                    'item_id'         => $it['item_id'],
+                    'total_delivery'  => $it['qty'],
+                    'plan_delivery'   => $it['qty'],
+                    'actual_delivery' => 0, 
+                    'is_active'       => 1
+                ]);
+            }
+        }
+
+        return $this->json([
+            'message' => "Import selesai: {$inserted} data baru, {$updated} diperbarui, {$skipped} baris invalid dilewati.",
+            'summary' => [
+                'inserted' => $inserted,
+                'updated'  => $updated,
+                'skipped'  => $skipped,
+            ]
+        ], 200);
+    }
+
+        /* ============================================================
+       HELPER: PARSING & VALIDASI EXCEL
+       ============================================================ */
+    private function parseExcel(Request $request)
+    {
+        if (!$request->hasFile('file')) {
+            return ['error' => 'File wajib diupload.'];
+        }
+
+        $file = $request->file('file');
+        $ext  = strtolower($file['extension'] ?? '');
+
+        if (!in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
+            return ['error' => 'Format harus Excel (.xlsx/.xls)'];
+        }
+
+        try {
+            $spreadsheet = IOFactory::load($file['tmp_name']);
+            $sheet = $spreadsheet->getActiveSheet();
+            $highestRow = $sheet->getHighestRow();
+        } catch (\Exception $e) {
+            return ['error' => 'Gagal membaca file: ' . $e->getMessage()];
+        }
+
+        // Cari Header
+        $headerRow = 1;
+        $colIndex = [];
+        for ($r = 1; $r <= 5; $r++) {
+            $rowData = $sheet->rangeToArray("A{$r}:Z{$r}", null, true, false)[0];
+            $found = false;
+            foreach ($rowData as $idx => $val) {
+                $valStr = strtoupper(trim((string)$val));
+                if ($valStr === 'CUSTOMER')      { $colIndex['customer'] = $idx; $found = true; }
+                if ($valStr === 'DELIVERY DATE') { $colIndex['date'] = $idx; $found = true; }
+                if ($valStr === 'CYCLE')         { $colIndex['cycle_time'] = $idx; $found = true; }
+                if ($valStr === 'ICS CODE')      { $colIndex['ics_code'] = $idx; $found = true; }
+                if ($valStr === 'QTY')           { $colIndex['qty'] = $idx; $found = true; }
+                if ($valStr === 'NO POLISI')     { $colIndex['no_pol'] = $idx; $found = true; }
+                if ($valStr === 'RUTE')          { $colIndex['rute'] = $idx; $found = true; }
+            }
+            if ($found) { $headerRow = $r; break; }
+        }
+
+        if (!isset($colIndex['customer']) || !isset($colIndex['ics_code'])) {
+            return ['error' => 'Header Excel tidak dikenali. Pastikan ada kolom CUSTOMER, RUTE, ICS CODE, QTY.'];
+        }
+
+        $rowsResult = [];
+        
+        // Ambil semua data Master Customer & Item dari DB
+        $allCustomers = Customer::query()->get();
+        $allItems = Item::query()->get();
+
+        for ($r = $headerRow + 1; $r <= $highestRow; $r++) {
+            $rowData = $sheet->rangeToArray("A{$r}:Z{$r}", null, true, false)[0];
+
+            $custNameExcel = trim((string)($rowData[$colIndex['customer']] ?? ''));
+            $dateRaw       = $rowData[$colIndex['date']] ?? null;
+            $icsCode       = trim((string)($rowData[$colIndex['ics_code']] ?? ''));
+            $qty           = (int)($rowData[$colIndex['qty']] ?? 0);
+            $noPol         = isset($colIndex['no_pol']) ? trim((string)($rowData[$colIndex['no_pol']] ?? '')) : '';
+            $ruteStr       = isset($colIndex['rute']) ? trim((string)($rowData[$colIndex['rute']] ?? '')) : '';
+            $cycleTimeStr  = isset($colIndex['cycle_time']) ? trim((string)($rowData[$colIndex['cycle_time']] ?? '')) : '';
+
+            if (empty($custNameExcel) && empty($icsCode) && empty($dateRaw)) continue;
+
+            $rowItem = [
+                'row_num'     => $r,
+                'raw_cust'    => $custNameExcel,
+                'raw_date'    => $dateRaw,
+                'raw_ics'     => $icsCode,
+                'raw_qty'     => $qty,
+                'raw_rute'    => $ruteStr,
+                'raw_time'    => $cycleTimeStr,
+                'no_pol'      => $noPol,
+                'is_valid'    => false,
+                'error_msg'   => ''
+            ];
+
+            if (empty($ruteStr) || empty($dateRaw) || empty($icsCode)) {
+                $rowItem['error_msg'] = 'Data RUTE, Tanggal, atau ICS Code kosong.';
+                $rowsResult[] = $rowItem;
+                continue;
+            }
+
+            // Format Tanggal
+            if (is_numeric($dateRaw)) {
+                $date = Date::excelToDateTimeObject($dateRaw)->format('Y-m-d');
+            } else {
+                $date = date('Y-m-d', strtotime($dateRaw));
+            }
+            $rowItem['date'] = $date;
+
+            // Cari Customer & Cycle berdasarkan RUTE
+            // Ambil angka paling belakang (misal "AHM DELTA PLAN 6" -> 6)
+            preg_match('/(\d+)\s*$/', $ruteStr, $matches);
+            $cycleNum = isset($matches[1]) ? (int)$matches[1] : 0;
+
+            $foundCustomer = null;
+            $foundCycle = null;
+
+            foreach ($allCustomers as $c) {
+                $isMatch = false;
+                
+                // Kadang di DB namanya kolomnya `code` bukan `code_customer`
+                $codeCust = $c->code_customer ?? $c->code ?? '';
+                $nameCust = $c->name ?? '';
+
+                // 1. Cek apakah kode customer ada di dalam teks RUTE
+                if (!empty($codeCust) && stripos($ruteStr, $codeCust) !== false) {
+                    $isMatch = true;
+                }
+                // 2. Cek apakah nama customer ada di dalam teks RUTE
+                else if (!empty($nameCust) && stripos($ruteStr, $nameCust) !== false) {
+                    $isMatch = true;
+                }
+                // 3. Fallback: Cek apakah nama customer di DB cocok dengan kolom CUSTOMER di Excel
+                else if (!empty($custNameExcel) && !empty($nameCust) && stripos($custNameExcel, $nameCust) !== false) {
+                    $isMatch = true;
+                }
+
+                if ($isMatch) {
+                    // KITA HAPUS ->whereNull('deleted_at') KARENA MODEL SUDAH MENANGANI SOFT DELETE
+                    $cycle = CustomerCycle::query()
+                        ->where('customer_id', '=', $c->id)
+                        ->where('cycle_number', '=', $cycleNum)
+                        ->first();
+
+                    if ($cycle) {
+                        $foundCustomer = $c;
+                        $foundCycle = $cycle;
+                        break; // Keluar dari loop jika sudah ketemu pasangan Customer + Cycle
+                    }
+                }
+            }
+
+            // Jika gagal nemu, berikan pesan error yang lebih jelas
+            if (!$foundCustomer || !$foundCycle) {
+                $rowItem['error_msg'] = "Gagal mencocokkan Rute '{$ruteStr}' (Cycle: {$cycleNum}). Cek apakah Customer '{$custNameExcel}' memiliki Cycle {$cycleNum} di database.";
+                $rowsResult[] = $rowItem;
+                continue;
+            }
+
+            $rowItem['customer_id'] = $foundCustomer->id;
+            $rowItem['cycle_id'] = $foundCycle->id;
+
+            // Cari Item
+            $foundItem = null;
+            foreach ($allItems as $i) {
+                if (trim($i->ics_code) === $icsCode) {
+                    $foundItem = $i;
+                    break;
+                }
+            }
+            
+            if (!$foundItem) {
+                $rowItem['error_msg'] = "ICS Code '{$icsCode}' tidak ada di Master Item.";
+                $rowsResult[] = $rowItem;
+                continue;
+            }
+            $rowItem['item_id'] = $foundItem->id;
+
+            // Parse Jam ETD & ETA
+            $rowItem['etd_plan'] = null;
+            $rowItem['eta_plan'] = null;
+            if (preg_match('/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/', $cycleTimeStr, $timeMatches)) {
+                $rowItem['etd_plan'] = $timeMatches[1] . ':00';
+                $rowItem['eta_plan'] = $timeMatches[2] . ':00';
+            }
+
+            // Jika sampai sini, valid!
+            $rowItem['is_valid'] = true;
+            $rowsResult[] = $rowItem;
+        }
+
+        return $rowsResult;
     }
 
     /* ============================================================
