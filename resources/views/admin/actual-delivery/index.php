@@ -371,7 +371,7 @@ function renderPreview(rows) {
             <tr style="border-bottom:1px solid var(--line-soft);background:${bgColor};color:${r.is_valid ? 'var(--text)' : txtColor};">
                 <td style="padding:10px;font-weight:700;">#${r.row_num}</td>
                 <td style="padding:10px;">${esc(r.raw_cust)}</td>
-                <td style="padding:10px;">${esc(r.raw_rute)}</td>
+                <td style="padding:10px;">${esc(r.raw_rute) + ' ' + esc(r.etd_plan) + '-' + esc(r.eta_plan)}</td>
                 <td style="padding:10px;">${esc(r.date || r.raw_date)}</td>
                 <td style="padding:10px;">${esc(r.raw_ics)}</td>
                 <td style="padding:10px;font-weight:700;">${r.raw_qty}</td>

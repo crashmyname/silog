@@ -500,7 +500,6 @@ class ActualDeliveryController extends BaseController
 
         $rowsResult = [];
         
-        // Ambil semua data Master Customer & Item dari DB
         $allCustomers = Customer::query()->get();
         $allItems = Item::query()->get();
 
@@ -544,52 +543,88 @@ class ActualDeliveryController extends BaseController
             }
             $rowItem['date'] = $date;
 
-            // Cari Customer & Cycle berdasarkan RUTE
-            // Ambil angka paling belakang (misal "AHM DELTA PLAN 6" -> 6)
-            preg_match('/(\d+)\s*$/', $ruteStr, $matches);
-            $cycleNum = isset($matches[1]) ? (int)$matches[1] : 0;
+            // Parse Jam dari CYCLE (misal "03:00 - 08:00")
+            $etdPlan = null;
+            $etaPlan = null;
+            if (preg_match('/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/', $cycleTimeStr, $timeMatches)) {
+                $etdPlan = $timeMatches[1]; // "03:00"
+                $etaPlan = $timeMatches[2]; // "08:00"
+            }
+            $rowItem['etd_plan'] = $etdPlan ? $etdPlan . ':00' : null;
+            $rowItem['eta_plan'] = $etaPlan ? $etaPlan . ':00' : null;
 
+            // ========================================================
+            // STRATEGI PENCARIAN BARU: Cari Cycle berdasarkan Jam DULU
+            // ========================================================
             $foundCustomer = null;
             $foundCycle = null;
 
-            foreach ($allCustomers as $c) {
-                $isMatch = false;
-                
-                // Kadang di DB namanya kolomnya `code` bukan `code_customer`
-                $codeCust = $c->code_customer ?? $c->code ?? '';
-                $nameCust = $c->name ?? '';
+            if ($etdPlan && $etaPlan) {
+                // Query menggunakan LIKE untuk mengantisipasi format jam (misal: 03:00:00 vs 03:00)
+                $matchingCycles = CustomerCycle::query()
+                    ->where('etd_from_ise', 'LIKE', $etdPlan . '%')
+                    ->where('eta_at_customer', 'LIKE', $etaPlan . '%')
+                    ->get();
 
-                // 1. Cek apakah kode customer ada di dalam teks RUTE
-                if (!empty($codeCust) && stripos($ruteStr, $codeCust) !== false) {
-                    $isMatch = true;
-                }
-                // 2. Cek apakah nama customer ada di dalam teks RUTE
-                else if (!empty($nameCust) && stripos($ruteStr, $nameCust) !== false) {
-                    $isMatch = true;
-                }
-                // 3. Fallback: Cek apakah nama customer di DB cocok dengan kolom CUSTOMER di Excel
-                else if (!empty($custNameExcel) && !empty($nameCust) && stripos($custNameExcel, $nameCust) !== false) {
-                    $isMatch = true;
-                }
+                foreach ($matchingCycles as $cycle) {
+                    // Ambil data customernya
+                    $c = Customer::find($cycle->customer_id);
+                    if (!$c) continue;
 
-                if ($isMatch) {
-                    // KITA HAPUS ->whereNull('deleted_at') KARENA MODEL SUDAH MENANGANI SOFT DELETE
-                    $cycle = CustomerCycle::query()
-                        ->where('customer_id', '=', $c->id)
-                        ->where('cycle_number', '=', $cycleNum)
-                        ->first();
+                    $codeCust = $c->code_customer ?? $c->code ?? '';
+                    $nameCust = $c->name ?? '';
 
-                    if ($cycle) {
+                    // Cek apakah Customer ini cocok dengan RUTE atau Kolom CUSTOMER di Excel
+                    $isMatch = false;
+                    if (!empty($codeCust) && stripos($ruteStr, $codeCust) !== false) {
+                        $isMatch = true;
+                    } else if (!empty($nameCust) && stripos($ruteStr, $nameCust) !== false) {
+                        $isMatch = true;
+                    } else if (!empty($custNameExcel) && !empty($codeCust) && stripos($custNameExcel, $codeCust) !== false) {
+                        $isMatch = true;
+                    } else if (!empty($custNameExcel) && !empty($nameCust) && stripos($custNameExcel, $nameCust) !== false) {
+                        $isMatch = true;
+                    }
+
+                    if ($isMatch) {
                         $foundCustomer = $c;
                         $foundCycle = $cycle;
-                        break; // Keluar dari loop jika sudah ketemu pasangan Customer + Cycle
+                        break;
                     }
                 }
             }
 
-            // Jika gagal nemu, berikan pesan error yang lebih jelas
+            // Fallback: Jika Jam tidak ketemu, coba cari berdasarkan angka di RUTE (misal "PLAN 6")
+            if (!$foundCycle) {
+                preg_match('/(\d+)\s*$/', $ruteStr, $matches);
+                $cycleNum = isset($matches[1]) ? (int)$matches[1] : 0;
+                
+                if ($cycleNum > 0) {
+                    foreach ($allCustomers as $c) {
+                        $codeCust = $c->code_customer ?? $c->code ?? '';
+                        $nameCust = $c->name ?? '';
+
+                        if ((!empty($codeCust) && stripos($ruteStr, $codeCust) !== false) ||
+                            (!empty($nameCust) && stripos($ruteStr, $nameCust) !== false) ||
+                            (!empty($custNameExcel) && !empty($nameCust) && stripos($custNameExcel, $nameCust) !== false)) {
+                            
+                            $cycle = CustomerCycle::query()
+                                ->where('customer_id', '=', $c->id)
+                                ->where('cycle_number', '=', $cycleNum)
+                                ->first();
+
+                            if ($cycle) {
+                                $foundCustomer = $c;
+                                $foundCycle = $cycle;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             if (!$foundCustomer || !$foundCycle) {
-                $rowItem['error_msg'] = "Gagal mencocokkan Rute '{$ruteStr}' (Cycle: {$cycleNum}). Cek apakah Customer '{$custNameExcel}' memiliki Cycle {$cycleNum} di database.";
+                $rowItem['error_msg'] = "Gagal mencocokkan Rute '{$ruteStr}' (Jam: {$cycleTimeStr}) dengan Master Cycle/Customer.";
                 $rowsResult[] = $rowItem;
                 continue;
             }
@@ -612,14 +647,6 @@ class ActualDeliveryController extends BaseController
                 continue;
             }
             $rowItem['item_id'] = $foundItem->id;
-
-            // Parse Jam ETD & ETA
-            $rowItem['etd_plan'] = null;
-            $rowItem['eta_plan'] = null;
-            if (preg_match('/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/', $cycleTimeStr, $timeMatches)) {
-                $rowItem['etd_plan'] = $timeMatches[1] . ':00';
-                $rowItem['eta_plan'] = $timeMatches[2] . ':00';
-            }
 
             // Jika sampai sini, valid!
             $rowItem['is_valid'] = true;
