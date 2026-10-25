@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Admin Panel · LogiBoard</title>
 <meta name="csrf-token" content="<?= (new \Bpjs\Framework\Core\Request())->csrfToken() ?>" />
+<meta name="user-role" content="<?= auth()->user()->role ?? 'ADMIN' ?>" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 <style>
 :root{
@@ -430,14 +431,14 @@ html[data-theme="dark"] .cf{box-shadow:0 24px 60px rgba(0,0,0,.5)}
       </div>
     </div>
 
-    <div class="group-label">Dashboard</div>
-    <nav class="nav">
+    <div class="group-label" id="lblDashboard">Dashboard</div>
+    <nav class="nav" id="navDashboard">
       <button data-adm="dashboard" class="active">
         <i class="fa-solid fa-chart-pie"></i> Ringkasan
       </button>
     </nav>
 
-    <div class="group-label">Master Data</div>
+    <div class="group-label" id="lblMaster">Master Data</div>
     <nav class="nav" id="navMaster"></nav>
 
     <div class="group-label">Operasional Delivery</div>
@@ -459,8 +460,8 @@ html[data-theme="dark"] .cf{box-shadow:0 24px 60px rgba(0,0,0,.5)}
       </a>
     </nav>
 
-    <div class="group-label">Konten</div>
-    <nav class="nav">
+    <div class="group-label" id="lblKonten">Konten</div>
+    <nav class="nav" id="navKonten">
       <button data-adm="docs">
         <i class="fa-solid fa-file-lines"></i> Dokumen
         <span class="cnt" id="cntDocs">0</span>
@@ -478,8 +479,8 @@ html[data-theme="dark"] .cf{box-shadow:0 24px 60px rgba(0,0,0,.5)}
       </button>
     </nav>
 
-    <div class="group-label">Pengaturan</div>
-    <nav class="nav">
+    <div class="group-label" id="lblPengaturan">Pengaturan</div>
+    <nav class="nav" id="navPengaturan">
       <button data-adm="settings">
         <i class="fa-solid fa-gear"></i> Umum
       </button>
@@ -804,6 +805,7 @@ document.addEventListener('keydown', e => {
    CONSTANTS
    ============================================================ */
 const CSRF      = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const USER_ROLE = document.querySelector('meta[name="user-role"]')?.content || 'ADMIN';
 const THEME_KEY = 'logiboard-theme';
 const LOCAL_KEY = 'logiboard-local';
 const BASE      = '/silog';
@@ -1216,6 +1218,16 @@ function renderSidebar() {
 }
 
 function goAdmin(target) {
+  // Proteksi Frontend: Jika ADMIN mencoba mengakses menu terlarang via Console/URL
+  if (USER_ROLE.toUpperCase() !== 'SUPERADMIN') {
+    if (target !== 'dashboard' && !target.startsWith('m_') && target !== 'docs' && target !== 'delivery' && target !== 'system' && target !== 'job' && target !== 'settings') {
+        // Biarkan
+    } else if (target !== 'dashboard') {
+        toast('Akses Ditolak: Role Anda tidak diizinkan membuka menu ini.', 'error');
+        return;
+    }
+  }
+
   document.querySelectorAll('.nav button').forEach(b =>
     b.classList.toggle('active', b.dataset.adm === target)
   );
@@ -1264,7 +1276,6 @@ function goAdmin(target) {
     }
     $('crumb').textContent = m.label;
 
-    // Lazy load backend
     if (m.backend && (state[key] || []).length === 0) {
       loadBackendMaster(key).then(() => renderMasterTable(key));
     }
@@ -2265,12 +2276,46 @@ $('logoutBtn').addEventListener('click', async () => {
 });
 
 /* ============================================================
+   ROLE PERMISSIONS (STRICT FRONTEND RESTRICTION)
+   ============================================================ */
+function applyRolePermissions() {
+    // Jika SUPERADMIN, tampilkan semua menu (biarkan default)
+    if (USER_ROLE.toUpperCase() === 'SUPERADMIN') {
+        return; 
+    }
+
+    // Untuk ADMIN/VIEWER:
+    // Sembunyikan Dashboard, Master Data, Konten, Pengaturan
+    // Biarkan menu Operasional Delivery (termasuk link "Coming soon") tetap tampil.
+    const hideElements = [
+        'lblDashboard', 'navDashboard',
+        'lblMaster', 'navMaster',
+        'lblKonten', 'navKonten',
+        'lblPengaturan', 'navPengaturan'
+    ];
+
+    hideElements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+
+    // JANGAN melakukan redirect ke /silog/admin/actual-delivery
+    // Biarkan user tetap di halaman Admin Panel (SPA)
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 (async function init() {
+  // Terapkan permission role terlebih dahulu (mencegah render menu yang salah)
+  applyRolePermissions();
+
   loadLocalState();
   renderSidebar();
   renderDashboard();
+  
+  // Panggil goAdmin('dashboard') agar state panel tetap rapi.
+  // Karena menu Dashboard disembunyikan untuk ADMIN, ini hanya menampilkan panel Ringkasan di kanan.
   goAdmin('dashboard');
 
   await Promise.all([
