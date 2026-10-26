@@ -173,6 +173,7 @@ class PublicController extends BaseController
                         $items[] = [
                             'item_id'         => (int) $it->item_id,
                             'ics_code'        => $master->ics_code,
+                            'part_number'     => $master->part_number,
                             'total_delivery'  => (int) $it->total_delivery,
                             'plan_delivery'   => (int) $it->plan_delivery,
                             'actual_delivery' => (int) $it->actual_delivery,
@@ -214,6 +215,7 @@ class PublicController extends BaseController
                 'id'       => (int) $i->id,
                 'ics_code' => $i->ics_code,
                 'ics_name' => $i->ics_name,
+                'part_number' => $i->part_number,
                 'type'     => $i->type,
             ];
         }

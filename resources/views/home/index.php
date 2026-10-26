@@ -618,36 +618,10 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
   color:var(--text-2);
 }
 
-.board-table .stick-1{
-  position:sticky;left:0;z-index:3;
-  background:var(--bg-2);
-  min-width:200px;width:200px;max-width:200px;
-  text-align:left;
-  border-right:1px solid var(--border);
-  color:var(--text);
-  font-size:11px;
-  padding:6px 10px;
-}
-.board-table .stick-2{
-  position:sticky;left:200px;z-index:3;
-  background:var(--bg-2);
-  min-width:100px;width:100px;max-width:100px;
-  text-align:left;
-  border-right:1px solid var(--border);
-  font-size:10.5px;font-weight:600;color:var(--text-2);
-  padding:6px 10px;
-}
-.board-table .stick-3{
-  position:sticky;left:300px;z-index:3;
-  background:var(--bg-2);
-  min-width:80px;width:80px;max-width:80px;
-  text-align:center;
-  border-right:2px solid var(--border-strong);
-  color:var(--text);
-  font-size:11px;
-  font-weight:700;
-  padding:6px 8px;
-}
+.board-table .stick-1{ position:sticky;left:0;z-index:3; background:var(--bg-2); min-width:200px;width:200px;max-width:200px; text-align:left; border-right:1px solid var(--border); color:var(--text); font-size:11px; padding:6px 10px; }
+.board-table .stick-2{ position:sticky;left:200px;z-index:3; background:var(--bg-2); min-width:150px;width:150px;max-width:150px; text-align:left; border-right:1px solid var(--border); font-size:11px; font-weight:500; color:var(--text-2); padding:6px 10px; }
+.board-table .stick-3{ position:sticky;left:350px;z-index:3; background:var(--bg-2); min-width:100px;width:100px;max-width:100px; text-align:left; border-right:1px solid var(--border); font-size:10.5px;font-weight:600;color:var(--text-2); padding:6px 10px; }
+.board-table .stick-4{ position:sticky;left:450px;z-index:3; background:var(--bg-2); min-width:80px;width:80px;max-width:80px; text-align:center; border-right:2px solid var(--border-strong); color:var(--text); font-size:11px; font-weight:700; padding:6px 8px; }
 
 .board-table thead th{
   position:sticky;top:0;z-index:5;
@@ -659,7 +633,8 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
 }
 .board-table thead th.stick-1,
 .board-table thead th.stick-2,
-.board-table thead th.stick-3{z-index:6;}
+.board-table thead th.stick-3,
+.board-table thead th.stick-4 {z-index:6;}
 
 .cust-head{
   background:linear-gradient(180deg,#1e40af,#1e3a8a) !important;
@@ -735,11 +710,12 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
 }
 .item-subheader th.stick-1,
 .item-subheader th.stick-2,
-.item-subheader th.stick-3{
+.item-subheader th.stick-3,
+.item-subheader th.stick-4{
   text-align:left;
   padding-left:10px !important;
 }
-.item-subheader th.stick-3{text-align:center;padding-left:6px !important}
+.item-subheader th.stick-4{text-align:center;padding-left:6px !important}
 .item-subheader .sub-head-plan{
   background:color-mix(in srgb,var(--accent,#2563eb) 10%,var(--bg-2)) !important;
   color:var(--text-2) !important;
@@ -755,11 +731,16 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
   color:var(--text);text-align:left;
 }
 .item-row td.stick-2{
+  font-family:'SF Mono',ui-monospace,monospace;
+  font-size:11px;color:var(--text-2);
+  text-align:left;
+}
+.item-row td.stick-3{
   font-size:10.5px;color:var(--text-2);font-weight:500;
   text-transform:none;letter-spacing:0;text-align:left;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.item-row td.stick-3{
+.item-row td.stick-4{
   text-align:center;
   font-weight:700;
   color:var(--text);
@@ -1843,12 +1824,12 @@ function renderBoard(){
   html += '<thead>';
 
   html += '<tr>';
-  html += '<th class="stick-1 cust-head" colspan="3" style="text-align:left">DESTINASI CUSTOMER</th>';
+  html += '<th class="stick-1 cust-head" colspan="4" style="text-align:left">DESTINASI CUSTOMER</th>';
   html += `<th class="cust-head" colspan="${cycles.length * COLS_PER_CYCLE}">${esc(customer.code_customer || '')} — ${esc(customer.name || '')}</th>`;
   html += '</tr>';
 
   html += '<tr>';
-  html += '<th class="stick-1 cycle-head" colspan="3" style="text-align:left">CYCLE DELIVERY</th>';
+  html += '<th class="stick-1 cycle-head" colspan="4" style="text-align:left">CYCLE DELIVERY</th>';
   cycles.forEach(cc => {
     const s = cc.status || 'waiting';
     html += `<th class="cycle-head cycle-head-${s}" colspan="${COLS_PER_CYCLE}">CYCLE ${cc.cycle_number}</th>`;
@@ -1859,7 +1840,7 @@ function renderBoard(){
   html += '<tbody>';
 
   html += '<tr>';
-  html += '<td class="stick-1 row-label" colspan="3">No Pol · Tonase · Rental Truk</td>';
+  html += '<td class="stick-1 row-label" colspan="4">No Pol · Tonase · Rental Truk</td>';
   cycles.forEach(cc => {
     const v = cc.vehicle_note || '';
     html += `<td colspan="${COLS_PER_CYCLE}" class="cell-vehicle ${v ? '' : 'empty'}">${v ? esc(v) : '—'}</td>`;
@@ -1867,7 +1848,7 @@ function renderBoard(){
   html += '</tr>';
 
   html += '<tr>';
-  html += '<td class="stick-1 row-label" colspan="3">ETD From ISE</td>';
+  html += '<td class="stick-1 row-label" colspan="4">ETD From ISE</td>';
   cycles.forEach(cc => {
     const t = cc.etd_plan ? cc.etd_plan.substring(0,5) : '';
     html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
@@ -1875,7 +1856,7 @@ function renderBoard(){
   html += '</tr>';
 
   html += '<tr>';
-  html += '<td class="stick-1 row-label" colspan="3">Actual Departure from ISE</td>';
+  html += '<td class="stick-1 row-label" colspan="4">Actual Departure from ISE</td>';
   cycles.forEach(cc => {
     const t = cc.actual_departure ? cc.actual_departure.substring(0,5) : '';
     html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
@@ -1883,7 +1864,7 @@ function renderBoard(){
   html += '</tr>';
 
   html += '<tr>';
-  html += '<td class="stick-1 row-label" colspan="3">ETA at Customer</td>';
+  html += '<td class="stick-1 row-label" colspan="4">ETA at Customer</td>';
   cycles.forEach(cc => {
     const t = cc.eta_plan ? cc.eta_plan.substring(0,5) : '';
     html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
@@ -1891,7 +1872,7 @@ function renderBoard(){
   html += '</tr>';
 
   html += '<tr>';
-  html += '<td class="stick-1 row-label" colspan="3">Actual Arrival at Customer</td>';
+  html += '<td class="stick-1 row-label" colspan="4">Actual Arrival at Customer</td>';
   cycles.forEach(cc => {
     const t = cc.actual_arrival ? cc.actual_arrival.substring(0,5) : '';
     html += `<td colspan="${COLS_PER_CYCLE}" class="cell-time ${t ? '' : 'empty'}">${t || '—'}</td>`;
@@ -1899,7 +1880,7 @@ function renderBoard(){
   html += '</tr>';
 
   html += '<tr>';
-  html += '<td class="stick-1 row-label" colspan="3">Status</td>';
+  html += '<td class="stick-1 row-label" colspan="4">Status</td>';
   cycles.forEach(cc => {
     const s = cc.status || 'waiting';
     html += `<td colspan="${COLS_PER_CYCLE}"><span class="status-chip st-${s}">${esc(STATUS_LABELS[s] || s)}</span></td>`;
@@ -1908,8 +1889,9 @@ function renderBoard(){
 
   html += '<tr class="item-subheader">';
   html += '<th class="stick-1">ICS NAME</th>';
-  html += '<th class="stick-2">TYPE</th>';
-  html += '<th class="stick-3">TOTAL</th>';
+  html += '<th class="stick-2">PART NUMBER</th>';
+  html += '<th class="stick-3">TYPE</th>';
+  html += '<th class="stick-4">TOTAL</th>';
   cycles.forEach(() => {
     html += `<th class="sub-head-plan">PLAN</th><th class="sub-head-act">ACTUAL</th>`;
   });
@@ -1924,8 +1906,9 @@ function renderBoard(){
 
     html += '<tr class="item-row">';
     html += `<td class="stick-1">${esc(item.ics_code)}</td>`;
-    html += `<td class="stick-2">${esc(item.type || item.ics_name || '')}</td>`;
-    html += `<td class="stick-3">${totalAll || ''}</td>`;
+    html += `<td class="stick-2">${esc(item.part_number || '')}</td>`;
+    html += `<td class="stick-3">${esc(item.type || item.ics_name || '')}</td>`;
+    html += `<td class="stick-4">${totalAll || ''}</td>`;
 
     cycles.forEach(cc => {
       const found = (cc.items || []).find(x => x.item_id === item.id);
