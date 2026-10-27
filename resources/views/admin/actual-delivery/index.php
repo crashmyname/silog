@@ -270,7 +270,7 @@ let items     = [];
 let vehicles  = [];
 let activeCustomerId = null;
 let activeCustomer   = null;
-let deliveriesByCycle = {};  // { cycleId: {...delivery...} }
+let deliveriesByCycle = {};
 
 const STATUS_OPTIONS = [
   { v: 'waiting',    l: 'Waiting' },
@@ -642,7 +642,7 @@ function renderItemRow(it) {
         <select class="select" data-role="item_id">
           <option value="">— Pilih ICS —</option>
           ${items.map(m => `<option value="${m.id}" ${String(m.id)===String(it.item_id||'')?'selected':''}>
-            ${esc(m.ics_code)} — ${esc(m.ics_name)}
+            ${esc(m.ics_code)} — ${esc(m.ics_name)} - ${esc(m.part_number)}
           </option>`).join('')}
         </select>
       </td>

@@ -54,8 +54,9 @@ class ActualDeliveryController extends BaseController
                 $itemList[] = [
                     'id'              => (int) $it->id,
                     'item_id'         => (int) $it->item_id,
-                    'icb_code'        => $master?->icb_code,
-                    'icb_name'        => $master?->icb_name,
+                    'ics_code'        => $master?->ics_code,
+                    'ics_name'        => $master?->ics_name,
+                    'part_number'     => $master?->part_number,
                     'type'            => $master?->type,
                     'total_delivery'  => (int) $it->total_delivery,
                     'plan_delivery'   => (int) $it->plan_delivery,
