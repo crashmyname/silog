@@ -452,9 +452,9 @@ class ActualDeliveryController extends BaseController
         ], 200);
     }
 
-        /* ============================================================
-       HELPER: PARSING & VALIDASI EXCEL
-       ============================================================ */
+    /* ============================================================
+    HELPER: PARSING & VALIDASI EXCEL
+    ============================================================ */
     private function parseExcel(Request $request)
     {
         if (!$request->hasFile('file')) {
@@ -470,39 +470,56 @@ class ActualDeliveryController extends BaseController
 
         try {
             $spreadsheet = IOFactory::load($file['tmp_name']);
-            $sheet = $spreadsheet->getActiveSheet();
-            $highestRow = $sheet->getHighestRow();
+            $sheet       = $spreadsheet->getActiveSheet();
+            $highestRow  = $sheet->getHighestRow();
         } catch (\Exception $e) {
             return ['error' => 'Gagal membaca file: ' . $e->getMessage()];
         }
 
-        // Cari Header
+        /* ---------- 1. DETEKSI HEADER ---------- */
         $headerRow = 1;
-        $colIndex = [];
+        $colIndex  = [];
         for ($r = 1; $r <= 5; $r++) {
             $rowData = $sheet->rangeToArray("A{$r}:Z{$r}", null, true, false)[0];
-            $found = false;
+            $found   = false;
             foreach ($rowData as $idx => $val) {
                 $valStr = strtoupper(trim((string)$val));
-                if ($valStr === 'CUSTOMER')      { $colIndex['customer'] = $idx; $found = true; }
-                if ($valStr === 'DELIVERY DATE') { $colIndex['date'] = $idx; $found = true; }
-                if ($valStr === 'CYCLE')         { $colIndex['cycle_time'] = $idx; $found = true; }
-                if ($valStr === 'ICS CODE')      { $colIndex['ics_code'] = $idx; $found = true; }
-                if ($valStr === 'QTY')           { $colIndex['qty'] = $idx; $found = true; }
-                if ($valStr === 'NO POLISI')     { $colIndex['no_pol'] = $idx; $found = true; }
-                if ($valStr === 'RUTE')          { $colIndex['rute'] = $idx; $found = true; }
+                if ($valStr === 'CUSTOMER')      { $colIndex['customer']    = $idx; $found = true; }
+                if ($valStr === 'DELIVERY DATE') { $colIndex['date']        = $idx; $found = true; }
+                if ($valStr === 'CYCLE')         { $colIndex['cycle']       = $idx; $found = true; }
+                if ($valStr === 'ICS CODE')      { $colIndex['ics_code']    = $idx; $found = true; }
+                if ($valStr === 'ICS NAME')      { $colIndex['ics_name']    = $idx; $found = true; }
+                if ($valStr === 'QTY')           { $colIndex['qty']         = $idx; $found = true; }
+                if ($valStr === 'NO POLISI')     { $colIndex['no_pol']      = $idx; $found = true; }
+                if ($valStr === 'RUTE')          { $colIndex['rute']        = $idx; $found = true; }
+                if ($valStr === 'DRIVER')        { $colIndex['driver']      = $idx; $found = true; }
+                if ($valStr === 'VENDOR')        { $colIndex['vendor']      = $idx; $found = true; }
+                if ($valStr === 'PART NOMOR')    { $colIndex['part_number'] = $idx; $found = true; }
             }
             if ($found) { $headerRow = $r; break; }
         }
 
-        if (!isset($colIndex['customer']) || !isset($colIndex['ics_code'])) {
-            return ['error' => 'Header Excel tidak dikenali. Pastikan ada kolom CUSTOMER, RUTE, ICS CODE, QTY.'];
+        if (!isset($colIndex['customer']) || !isset($colIndex['ics_code']) || !isset($colIndex['cycle'])) {
+            return ['error' => 'Header Excel tidak dikenali. Pastikan ada kolom CUSTOMER, RUTE, CYCLE, ICS CODE, QTY.'];
         }
 
-        $rowsResult = [];
-        
+        $rowsResult   = [];
         $allCustomers = Customer::query()->get();
-        $allItems = Item::query()->get();
+        $allItems     = Item::query()->get();
+
+        /* Map bulan Indonesia -> Inggris */
+        $idMonth = [
+            'JANUARI' => 'JAN', 'FEBRUARI' => 'FEB', 'MARET' => 'MAR',
+            'APRIL'   => 'APR', 'AGUSTUS'  => 'AUG', 'SEPTEMBER' => 'SEP',
+            'OKTOBER' => 'OCT', 'NOVEMBER' => 'NOV', 'DESEMBER'  => 'DEC',
+            'OKT'     => 'OCT', 'AGU'      => 'AUG', 'AGS'       => 'AUG',
+            'DES'     => 'DEC', 'MEI'      => 'MAY',
+        ];
+
+        $prev = [
+            'date' => null, 'rute' => null, 'cycle' => null,
+            'no_pol' => null, 'driver' => null, 'vendor' => null,
+        ];
 
         for ($r = $headerRow + 1; $r <= $highestRow; $r++) {
             $rowData = $sheet->rangeToArray("A{$r}:Z{$r}", null, true, false)[0];
@@ -511,129 +528,131 @@ class ActualDeliveryController extends BaseController
             $dateRaw       = $rowData[$colIndex['date']] ?? null;
             $icsCode       = trim((string)($rowData[$colIndex['ics_code']] ?? ''));
             $qty           = (int)($rowData[$colIndex['qty']] ?? 0);
+            $cycleStr      = trim((string)($rowData[$colIndex['cycle']] ?? ''));
             $noPol         = isset($colIndex['no_pol']) ? trim((string)($rowData[$colIndex['no_pol']] ?? '')) : '';
-            $ruteStr       = isset($colIndex['rute']) ? trim((string)($rowData[$colIndex['rute']] ?? '')) : '';
-            $cycleTimeStr  = isset($colIndex['cycle_time']) ? trim((string)($rowData[$colIndex['cycle_time']] ?? '')) : '';
+            $ruteStr       = isset($colIndex['rute'])   ? trim((string)($rowData[$colIndex['rute']]   ?? '')) : '';
+            $driverStr     = isset($colIndex['driver']) ? trim((string)($rowData[$colIndex['driver']] ?? '')) : '';
+            $vendorStr     = isset($colIndex['vendor']) ? trim((string)($rowData[$colIndex['vendor']] ?? '')) : '';
 
-            if (empty($custNameExcel) && empty($icsCode) && empty($dateRaw)) continue;
+            if (empty($custNameExcel) && empty($icsCode) && empty($dateRaw) && empty($ruteStr)) continue;
+
+            /* ---------- 2. FORWARD-FILL (merged cell) ---------- */
+            if (!empty($icsCode)) {
+                if (empty($dateRaw))   { $dateRaw   = $prev['date'];   }
+                if (empty($ruteStr))   { $ruteStr   = $prev['rute'];   }
+                if (empty($cycleStr))  { $cycleStr  = $prev['cycle'];  }
+                if (empty($noPol))     { $noPol     = $prev['no_pol']; }
+                if (empty($driverStr)) { $driverStr = $prev['driver']; }
+                if (empty($vendorStr)) { $vendorStr = $prev['vendor']; }
+            }
+            $prev['date']   = $dateRaw;
+            $prev['rute']   = $ruteStr;
+            $prev['cycle']  = $cycleStr;
+            $prev['no_pol'] = $noPol;
+            $prev['driver'] = $driverStr;
+            $prev['vendor'] = $vendorStr;
 
             $rowItem = [
-                'row_num'     => $r,
-                'raw_cust'    => $custNameExcel,
-                'raw_date'    => $dateRaw,
-                'raw_ics'     => $icsCode,
-                'raw_qty'     => $qty,
-                'raw_rute'    => $ruteStr,
-                'raw_time'    => $cycleTimeStr,
-                'no_pol'      => $noPol,
-                'is_valid'    => false,
-                'error_msg'   => ''
+                'row_num'   => $r,
+                'raw_cust'  => $custNameExcel,
+                'raw_date'  => $dateRaw,
+                'raw_ics'   => $icsCode,
+                'raw_qty'   => $qty,
+                'raw_rute'  => $ruteStr,
+                'raw_cycle' => $cycleStr,
+                'no_pol'    => $noPol,
+                'driver'    => $driverStr,
+                'vendor'    => $vendorStr,
+                'is_valid'  => false,
+                'error_msg' => '',
             ];
 
-            if (empty($ruteStr) || empty($dateRaw) || empty($icsCode)) {
-                $rowItem['error_msg'] = 'Data RUTE, Tanggal, atau ICS Code kosong.';
+            if (empty($ruteStr) || empty($dateRaw) || empty($icsCode) || empty($cycleStr)) {
+                $rowItem['error_msg'] = 'Data RUTE, Tanggal, CYCLE, atau ICS Code kosong.';
                 $rowsResult[] = $rowItem;
                 continue;
             }
 
-            // Format Tanggal
+            /* ---------- 3. PARSE TANGGAL (support Indonesia) ---------- */
             if (is_numeric($dateRaw)) {
                 $date = Date::excelToDateTimeObject($dateRaw)->format('Y-m-d');
             } else {
-                $date = date('Y-m-d', strtotime($dateRaw));
+                $dateStr = trim((string)$dateRaw);
+                $dateStr = str_ireplace(array_keys($idMonth), array_values($idMonth), $dateStr);
+                $ts = strtotime($dateStr);
+                if ($ts === false) {
+                    $rowItem['error_msg'] = "Format tanggal tidak dikenali: '{$dateRaw}'.";
+                    $rowsResult[] = $rowItem;
+                    continue;
+                }
+                $date = date('Y-m-d', $ts);
             }
             $rowItem['date'] = $date;
 
-            // Parse Jam dari CYCLE (misal "03:00 - 08:00")
-            $etdPlan = null;
-            $etaPlan = null;
-            if (preg_match('/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/', $cycleTimeStr, $timeMatches)) {
-                $etdPlan = $timeMatches[1]; // "03:00"
-                $etaPlan = $timeMatches[2]; // "08:00"
+            /* ========================================================
+            4. PARSE CYCLE NUMBER dari kolom CYCLE
+                "CYCLE 1" -> 1 ; "CYCLE 12" -> 12 ; "1" -> 1
+            ======================================================== */
+            $cycleNum = 0;
+            if (preg_match('/(\d+)/', $cycleStr, $mCy)) {
+                $cycleNum = (int)$mCy[1];
             }
-            $rowItem['etd_plan'] = $etdPlan ? $etdPlan . ':00' : null;
-            $rowItem['eta_plan'] = $etaPlan ? $etaPlan . ':00' : null;
-
-            // ========================================================
-            // STRATEGI PENCARIAN BARU: Cari Cycle berdasarkan Jam DULU
-            // ========================================================
-            $foundCustomer = null;
-            $foundCycle = null;
-
-            if ($etdPlan && $etaPlan) {
-                // Query menggunakan LIKE untuk mengantisipasi format jam (misal: 03:00:00 vs 03:00)
-                $matchingCycles = CustomerCycle::query()
-                    ->where('etd_from_ise', 'LIKE', $etdPlan . '%')
-                    ->where('eta_at_customer', 'LIKE', $etaPlan . '%')
-                    ->get();
-
-                foreach ($matchingCycles as $cycle) {
-                    // Ambil data customernya
-                    $c = Customer::find($cycle->customer_id);
-                    if (!$c) continue;
-
-                    $codeCust = $c->code_customer ?? $c->code ?? '';
-                    $nameCust = $c->name ?? '';
-
-                    // Cek apakah Customer ini cocok dengan RUTE atau Kolom CUSTOMER di Excel
-                    $isMatch = false;
-                    if (!empty($codeCust) && stripos($ruteStr, $codeCust) !== false) {
-                        $isMatch = true;
-                    } else if (!empty($nameCust) && stripos($ruteStr, $nameCust) !== false) {
-                        $isMatch = true;
-                    } else if (!empty($custNameExcel) && !empty($codeCust) && stripos($custNameExcel, $codeCust) !== false) {
-                        $isMatch = true;
-                    } else if (!empty($custNameExcel) && !empty($nameCust) && stripos($custNameExcel, $nameCust) !== false) {
-                        $isMatch = true;
-                    }
-
-                    if ($isMatch) {
-                        $foundCustomer = $c;
-                        $foundCycle = $cycle;
-                        break;
-                    }
-                }
-            }
-
-            // Fallback: Jika Jam tidak ketemu, coba cari berdasarkan angka di RUTE (misal "PLAN 6")
-            if (!$foundCycle) {
-                preg_match('/(\d+)\s*$/', $ruteStr, $matches);
-                $cycleNum = isset($matches[1]) ? (int)$matches[1] : 0;
-                
-                if ($cycleNum > 0) {
-                    foreach ($allCustomers as $c) {
-                        $codeCust = $c->code_customer ?? $c->code ?? '';
-                        $nameCust = $c->name ?? '';
-
-                        if ((!empty($codeCust) && stripos($ruteStr, $codeCust) !== false) ||
-                            (!empty($nameCust) && stripos($ruteStr, $nameCust) !== false) ||
-                            (!empty($custNameExcel) && !empty($nameCust) && stripos($custNameExcel, $nameCust) !== false)) {
-                            
-                            $cycle = CustomerCycle::query()
-                                ->where('customer_id', '=', $c->id)
-                                ->where('cycle_number', '=', $cycleNum)
-                                ->first();
-
-                            if ($cycle) {
-                                $foundCustomer = $c;
-                                $foundCycle = $cycle;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!$foundCustomer || !$foundCycle) {
-                $rowItem['error_msg'] = "Gagal mencocokkan Rute '{$ruteStr}' (Jam: {$cycleTimeStr}) dengan Master Cycle/Customer.";
+            if ($cycleNum <= 0) {
+                $rowItem['error_msg'] = "Kolom CYCLE '{$cycleStr}' tidak mengandung angka.";
                 $rowsResult[] = $rowItem;
                 continue;
             }
+            $rowItem['cycle_number'] = $cycleNum;
 
+            /* ========================================================
+            5. CARI CUSTOMER (by kode/nama di RUTE / kolom CUSTOMER)
+            ======================================================== */
+            $foundCustomer = null;
+            foreach ($allCustomers as $c) {
+                $codeCust = $c->code_customer ?? $c->code ?? '';
+                $nameCust = $c->name ?? '';
+
+                $isMatch = false;
+                if (!empty($codeCust) && stripos($ruteStr, $codeCust) !== false) {
+                    $isMatch = true;
+                } else if (!empty($nameCust) && stripos($ruteStr, $nameCust) !== false) {
+                    $isMatch = true;
+                } else if (!empty($custNameExcel) && !empty($codeCust) && stripos($custNameExcel, $codeCust) !== false) {
+                    $isMatch = true;
+                } else if (!empty($custNameExcel) && !empty($nameCust) && stripos($custNameExcel, $nameCust) !== false) {
+                    $isMatch = true;
+                }
+
+                if ($isMatch) { $foundCustomer = $c; break; }
+            }
+
+            if (!$foundCustomer) {
+                $rowItem['error_msg'] = "Customer tidak ditemukan dari Rute '{$ruteStr}' / kolom CUSTOMER '{$custNameExcel}'.";
+                $rowsResult[] = $rowItem;
+                continue;
+            }
             $rowItem['customer_id'] = $foundCustomer->id;
+
+            /* ========================================================
+            6. CARI CYCLE via customer_id + cycle_number
+            ======================================================== */
+            $foundCycle = CustomerCycle::query()
+                ->where('customer_id',  '=', $foundCustomer->id)
+                ->where('cycle_number', '=', $cycleNum)
+                ->first();
+
+            if (!$foundCycle) {
+                $rowItem['error_msg'] = "Cycle {$cycleNum} tidak ada di master cycle untuk customer '{$foundCustomer->name}'.";
+                $rowsResult[] = $rowItem;
+                continue;
+            }
             $rowItem['cycle_id'] = $foundCycle->id;
 
-            // Cari Item
+            /* ---------- 7. etd_plan / eta_plan dari MASTER CYCLE ---------- */
+            $rowItem['etd_plan'] = $foundCycle->etd_from_ise      ?: null; // contoh: "04:00:00"
+            $rowItem['eta_plan'] = $foundCycle->eta_at_customer   ?: null; // contoh: "06:00:00"
+
+            /* ---------- 8. CARI ITEM via ICS CODE ---------- */
             $foundItem = null;
             foreach ($allItems as $i) {
                 if (trim($i->ics_code) === $icsCode) {
@@ -641,15 +660,12 @@ class ActualDeliveryController extends BaseController
                     break;
                 }
             }
-            
             if (!$foundItem) {
                 $rowItem['error_msg'] = "ICS Code '{$icsCode}' tidak ada di Master Item.";
                 $rowsResult[] = $rowItem;
                 continue;
             }
-            $rowItem['item_id'] = $foundItem->id;
-
-            // Jika sampai sini, valid!
+            $rowItem['item_id']  = $foundItem->id;
             $rowItem['is_valid'] = true;
             $rowsResult[] = $rowItem;
         }
