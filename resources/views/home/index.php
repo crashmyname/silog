@@ -1021,6 +1021,16 @@ html[data-theme="light"] .pdf-modal-bg{background:rgba(15,23,42,.55)}
         <span>·</span>
         <span>Diperbarui <b id="boardLastUpdate">—</b></span>
       </div>
+
+      <!-- ===== EXPORT ===== -->
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" type="button" id="btnExportExcel">
+          <i class="fa-solid fa-file-excel" style="color:#22c55e"></i> Excel
+        </button>
+        <button class="btn btn-ghost btn-sm" type="button" id="btnExportPdf">
+          <i class="fa-solid fa-file-pdf" style="color:#ef4444"></i> PDF
+        </button>
+      </div>
     </div>
 
     <div id="boardArea">
@@ -2061,6 +2071,431 @@ document.addEventListener('click', e => {
   } else {
     go(hash || 'home');
   }
+})();
+</script>
+<script>
+/* ============================================================
+   EXPORT ACTUAL DELIVERY — Excel & PDF  (v2, fix guard)
+   Membaca langsung <table class="board-table"> dari DOM.
+   Tidak bergantung pada window.boardData.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ---------- Lazy load library ---------- */
+  const _cache = {};
+  const loadScript = (key, url) => new Promise((resolve, reject) => {
+    if (_cache[key]) return resolve();
+    const s = document.createElement('script');
+    s.src = url; s.async = true;
+    s.onload  = () => { _cache[key] = true; resolve(); };
+    s.onerror = () => reject(new Error('Gagal memuat library: ' + url));
+    document.head.appendChild(s);
+  });
+  const ensureXlsx = () => loadScript('xlsx-style',
+      'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js');
+  const ensurePdf  = async () => {
+    await loadScript('jspdf',
+      'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+    await loadScript('autotable',
+      'https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js');
+    return window.jspdf.jsPDF;
+  };
+
+  /* ---------- Helper ---------- */
+  const stamp = () => {
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;
+  };
+  const safeName = s => String(s || 'board')
+    .replace(/[^\w\-]+/g, '_').replace(/_+/g, '_').slice(0, 40);
+
+  /* ---------- Baca <table> → grid (colspan/rowspan-aware) ---------- */
+  function readBoardTable() {
+    const table = document.querySelector('.board-table');
+    if (!table) return { grid: [], cols: 0 };
+
+    const rows = [...table.querySelectorAll('tr')];
+    const grid = [];
+    const occupied = new Set();
+
+    rows.forEach((tr, r) => {
+      grid[r] = grid[r] || [];
+      let c = 0;
+      [...tr.children].forEach(cell => {
+        while (occupied.has(`${r},${c}`)) c++;
+
+        const colspan = cell.colSpan || 1;
+        const rowspan = cell.rowSpan || 1;
+        const text    = (cell.innerText || cell.textContent || '')
+                          .replace(/\s+/g, ' ').trim();
+
+        grid[r][c] = {
+          text, colspan, rowspan,
+          cls: cell.className || '',
+          isHeader: cell.tagName === 'TH',
+        };
+
+        for (let dr = 0; dr < rowspan; dr++) {
+          for (let dc = 0; dc < colspan; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            occupied.add(`${r + dr},${c + dc}`);
+          }
+        }
+        c += colspan;
+      });
+    });
+
+    let cols = 0;
+    grid.forEach(row => {
+      let s = 0;
+      row.forEach(cell => { if (cell) s += cell.colspan; });
+      if (s > cols) cols = s;
+    });
+
+    return { grid, cols };
+  }
+
+  /* ---------- Guard: cek dari DOM, BUKAN dari window.boardData ---------- */
+  function assertReady() {
+    const sel = document.getElementById('boardCustomer');
+    if (!sel || !sel.value)              throw new Error('Pilih customer terlebih dahulu.');
+    if (!document.querySelector('.board-table'))
+                                          throw new Error('Papan belum dirender — pilih customer lalu klik Muat Ulang.');
+    if (!document.querySelector('.board-table tbody tr'))
+                                          throw new Error('Data papan kosong — tidak ada yang bisa diekspor.');
+  }
+
+  function customerLabel() {
+    const sel = document.getElementById('boardCustomer');
+    if (!sel || !sel.options[sel.selectedIndex]) return 'Board';
+    const txt = (sel.options[sel.selectedIndex].textContent || '').trim();
+    return txt || 'Board';
+  }
+
+  function fileBase() {
+    const code = customerLabel().split('—')[0].trim() || 'board';
+    const date = document.getElementById('boardDate')?.value || '';
+    return `actual-delivery_${safeName(code)}_${date}`;
+  }
+
+  /* ============================================================
+    EXCEL — dengan styling (fill, font, border) mirip PDF
+    ============================================================ */
+  async function exportExcel() {
+    assertReady();
+    await ensureXlsx();
+
+    const { grid, cols } = readBoardTable();
+    if (!grid.length) throw new Error('Tabel kosong.');
+
+    /* ---------- Build AOA + merges ---------- */
+    const aoa    = [];
+    const merges = [];
+
+    grid.forEach((row, r) => {
+      aoa[r] = new Array(cols).fill('');
+      row.forEach((cell, c) => {
+        if (!cell) return;
+
+        /* Konversi ke angka bila memungkinkan (biar bisa disum di Excel) */
+        const txt = cell.text;
+        const num = Number(txt);
+        const isNumeric = txt !== '' && Number.isFinite(num) && !isNaN(num);
+        aoa[r][c] = isNumeric ? num : txt;
+
+        if (cell.colspan > 1 || cell.rowspan > 1) {
+          merges.push({
+            s: { r, c },
+            e: { r: r + cell.rowspan - 1, c: c + cell.colspan - 1 },
+          });
+        }
+      });
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!merges'] = merges;
+    ws['!freeze'] = { xSplit: 0, ySplit: 2 };
+
+    /* ---------- Auto-width kolom ---------- */
+    ws['!cols'] = Array.from({ length: cols }, (_, i) => {
+      let max = 6;
+      aoa.forEach(row => {
+        const v = String(row[i] ?? '');
+        if (v.length > max) max = v.length;
+      });
+      return { wch: Math.min(40, Math.max(8, max + 2)) };
+    });
+
+    /* ---------- Warna & style per sel ---------- */
+    const COL_BORDER = { rgb: 'CBD5E1' };
+    const border = () => ({
+      top:    { style: 'thin', color: COL_BORDER },
+      bottom: { style: 'thin', color: COL_BORDER },
+      left:   { style: 'thin', color: COL_BORDER },
+      right:  { style: 'thin', color: COL_BORDER },
+    });
+
+    const baseFontSize = cols > 12 ? 9 : cols > 8 ? 9.5 : 10;
+
+    function styleFor(cell, r, c) {
+      const cls = cell?.cls || '';
+
+      // default
+      const s = {
+        font: {
+          name: 'Calibri',
+          sz: baseFontSize,
+          color: { rgb: '1E293B' },
+        },
+        alignment: {
+          vertical: 'center',
+          horizontal: c < 4 ? 'left' : 'center',
+          wrapText: true,
+        },
+        border: border(),
+      };
+
+      /* ---- 1. Header Customer (biru tua) ---- */
+      if (cls.includes('cust-head')) {
+        s.fill = { patternType: 'solid', fgColor: { rgb: '1E40AF' } };
+        s.font = { name: 'Calibri', sz: baseFontSize + 1, bold: true, color: { rgb: 'FFFFFF' } };
+        s.alignment.horizontal = 'left';
+
+      /* ---- 2. Header Cycle (warna sesuai status) ---- */
+      } else if (cls.includes('cycle-head')) {
+        let bg = 'DBEAFE', fg = '1D4ED8';         // default = on_the_way
+        if      (cls.includes('delivered'))  { bg = 'DCFCE7'; fg = '15803D'; }
+        else if (cls.includes('arrived'))    { bg = 'FEF3C7'; fg = 'B45309'; }
+        else if (cls.includes('delayed'))    { bg = 'FEE2E2'; fg = 'B91C1C'; }
+        else if (cls.includes('waiting'))    { bg = 'F1F5F9'; fg = '475569'; }
+        else if (cls.includes('cancelled'))  { bg = 'F1F5F9'; fg = '64748B'; }
+        s.fill = { patternType: 'solid', fgColor: { rgb: bg } };
+        s.font = { name: 'Calibri', sz: baseFontSize, bold: true, color: { rgb: fg } };
+
+      /* ---- 3. Label baris (ETD, ETA, No Pol, dll) ---- */
+      } else if (cls.includes('row-label')) {
+        s.fill = { patternType: 'solid', fgColor: { rgb: 'F1F5F9' } };
+        s.font = { name: 'Calibri', sz: baseFontSize, bold: true, color: { rgb: '475569' } };
+        s.alignment.horizontal = 'left';
+
+      /* ---- 4. Sub-header item (ICS NAME, PART NUMBER, …) ---- */
+      } else if (cls.includes('item-subheader') || (cell?.isHeader && !s.fill)) {
+        s.fill = { patternType: 'solid', fgColor: { rgb: 'E2E8F0' } };
+        s.font = { name: 'Calibri', sz: baseFontSize, bold: true, color: { rgb: '0F172A' } };
+        if (c < 4) s.alignment.horizontal = 'left';
+
+      /* ---- 5. ACTUAL (hijau) / mismatch (merah) / kosong ---- */
+      } else if (cls.includes('cell-actual')) {
+        if (cls.includes('mismatch')) {
+          s.fill = { patternType: 'solid', fgColor: { rgb: 'FEE2E2' } };
+          s.font = { name: 'Calibri', sz: baseFontSize, bold: true, color: { rgb: 'B91C1C' } };
+        } else if (cls.includes('cell-zero')) {
+          // kosong: jangan beri fill, teks netral
+          s.font = { name: 'Calibri', sz: baseFontSize, color: { rgb: '94A3B8' } };
+        } else {
+          s.fill = { patternType: 'solid', fgColor: { rgb: 'F0FDF4' } };
+          s.font = { name: 'Calibri', sz: baseFontSize, bold: true, color: { rgb: '15803D' } };
+        }
+        s.alignment.horizontal = 'center';
+
+      /* ---- 6. PLAN (background netral, teks abu) ---- */
+      } else if (cls.includes('cell-plan')) {
+        s.fill = { patternType: 'solid', fgColor: { rgb: 'F8FAFC' } };
+        s.font = { name: 'Calibri', sz: baseFontSize, color: { rgb: '64748B' } };
+        s.alignment.horizontal = 'center';
+
+      /* ---- 7. Kolom waktu (ETD, ETA, Actual Departure, …) ---- */
+      } else if (cls.includes('cell-time')) {
+        s.font = { name: 'Calibri', sz: baseFontSize, bold: true, color: { rgb: '0F172A' } };
+        s.alignment.horizontal = 'center';
+
+      /* ---- 8. Kolom kendaraan / teks panjang ---- */
+      } else if (cls.includes('cell-vehicle')) {
+        s.font = { name: 'Calibri', sz: baseFontSize, color: { rgb: '0F172A' } };
+        s.alignment.horizontal = 'center';
+
+      /* ---- 9. Kolom sticky (deskripsi item) ---- */
+      } else if (cls.includes('stick-1')) {
+        s.font = { name: 'Calibri', sz: baseFontSize, bold: true, color: { rgb: '0F172A' } };
+        s.alignment.horizontal = 'left';
+      } else if (cls.includes('stick-2') || cls.includes('stick-3')) {
+        s.alignment.horizontal = 'left';
+      } else if (cls.includes('stick-4')) {
+        s.alignment.horizontal = 'center';
+        s.font = { name: 'Calibri', sz: baseFontSize, bold: true, color: { rgb: '0F172A' } };
+      }
+
+      return s;
+    }
+
+    /* Terapkan style ke SEMUA sel (termasuk yang kosong, agar border penuh) */
+    for (let r = 0; r < aoa.length; r++) {
+      for (let c = 0; c < cols; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        if (!ws[ref]) ws[ref] = { t: 's', v: '' };
+        ws[ref].s = styleFor(grid[r]?.[c], r, c);
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Actual Delivery');
+    XLSX.writeFile(wb, `${fileBase()}_${stamp()}.xlsx`);
+  }
+
+  /* ============================================================
+     PDF
+     ============================================================ */
+  async function exportPdf() {
+    assertReady();
+    const jsPDF = await ensurePdf();
+
+    const { grid, cols } = readBoardTable();
+    if (!grid.length) throw new Error('Tabel kosong.');
+
+    const customer = customerLabel();
+    const date     = document.getElementById('boardDate')?.value || '';
+    const landscape = cols > 8;
+
+    const doc = new jsPDF({
+      orientation: landscape ? 'landscape' : 'portrait',
+      unit: 'pt', format: 'a4', compress: true,
+    });
+
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    /* Kop */
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Delivery Control Board', 30, 36);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`${customer}  ·  ${date}`, 30, 52);
+    doc.text(
+      `Diekspor: ${new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}`,
+      30, 66
+    );
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.8);
+    doc.line(30, 74, pageW - 30, 74);
+
+    /* Body */
+    const body = grid.map(row => {
+      const out = [];
+      for (let c = 0; c < cols; c++) {
+        const cell = row[c];
+        if (!cell) continue;
+        out.push({
+          content: cell.text,
+          colSpan: cell.colspan,
+          rowSpan: cell.rowspan,
+        });
+      }
+      return out;
+    });
+
+    const baseFont = cols > 12 ? 6.5 : cols > 8 ? 7 : 8;
+
+    doc.autoTable({
+      body,
+      startY: 82,
+      margin: { top: 82, left: 22, right: 22, bottom: 36 },
+      tableLineColor: [203, 213, 225],
+      tableLineWidth: 0.5,
+      styles: {
+        font: 'helvetica',
+        fontSize: baseFont,
+        cellPadding: { top: 4, right: 4, bottom: 4, left: 4 },
+        overflow: 'linebreak',
+        lineColor: [226, 232, 240],
+        lineWidth: 0.5,
+        textColor: [30, 41, 59],
+        valign: 'middle',
+        halign: 'center',
+      },
+      didParseCell: (data) => {
+        const gridRow = grid[data.row.index];
+        if (!gridRow) return;
+        const orig = gridRow[data.column.index];
+        if (!orig) return;
+        const cls = orig.cls;
+
+        if (data.column.index < 4) data.cell.styles.halign = 'left';
+
+        if (cls.includes('cust-head')) {
+          data.cell.styles.fillColor = [30, 64, 175];
+          data.cell.styles.textColor = 255;
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.halign    = 'left';
+        } else if (cls.includes('cycle-head')) {
+          data.cell.styles.fillColor = [219, 234, 254];
+          data.cell.styles.textColor = [29, 78, 216];
+          data.cell.styles.fontStyle = 'bold';
+        } else if (cls.includes('row-label')) {
+          data.cell.styles.fillColor = [241, 245, 249];
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.textColor = [71, 85, 105];
+          data.cell.styles.halign    = 'left';
+        } else if (cls.includes('item-subheader')) {
+          data.cell.styles.fillColor = [226, 232, 240];
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.textColor = [15, 23, 42];
+        } else if (cls.includes('cell-actual') && cls.includes('mismatch')) {
+          data.cell.styles.textColor = [185, 28, 28];
+          data.cell.styles.fontStyle = 'bold';
+        } else if (cls.includes('cell-actual')) {
+          data.cell.styles.textColor = [21, 128, 61];
+          data.cell.styles.fontStyle = 'bold';
+        } else if (cls.includes('cell-plan')) {
+          data.cell.styles.textColor = [100, 116, 139];
+        } else if (cls.includes('stick-1')) {
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+      didDrawPage: (data) => {
+        doc.setFontSize(7.5);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+          `Actual Delivery · ${customer} · Hal. ${data.pageNumber}`,
+          22, pageH - 16
+        );
+        doc.text('LogiBoard', pageW - 22, pageH - 16, { align: 'right' });
+      },
+    });
+
+    doc.save(`${fileBase()}_${stamp()}.pdf`);
+  }
+
+  /* ============================================================
+     WIRING
+     ============================================================ */
+  document.addEventListener('click', async (e) => {
+    const btnXls = e.target.closest('#btnExportExcel');
+    const btnPdf = e.target.closest('#btnExportPdf');
+    if (!btnXls && !btnPdf) return;
+
+    const btn  = btnXls || btnPdf;
+    const fn   = btnXls ? exportExcel : exportPdf;
+    const html = btn.innerHTML;
+
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyiapkan…';
+
+    try {
+      await fn();
+      toast('File berhasil dibuat', 'success');
+    } catch (err) {
+      console.error('[Export]', err);
+      toast(err.message || 'Gagal mengekspor', 'error');
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = html;
+    }
+  });
 })();
 </script>
 </body>
