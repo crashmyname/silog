@@ -272,6 +272,10 @@ let activeCustomerId = null;
 let activeCustomer   = null;
 let deliveriesByCycle = {};
 
+// ✅ FIX: cache status hasil save terakhir, dipakai sebagai fallback kalau
+// server tidak mengembalikan nilai status untuk cycle tertentu.
+const lastSavedStatus = {};
+
 const STATUS_OPTIONS = [
   { v: 'waiting',    l: 'Waiting' },
   { v: 'on_the_way', l: 'On The Way' },
@@ -280,6 +284,17 @@ const STATUS_OPTIONS = [
   { v: 'delayed',    l: 'Delayed' },
   { v: 'cancelled',  l: 'Cancelled' },
 ];
+
+// ✅ FIX: normalisasi status dari berbagai bentuk (null, kosong, uppercase)
+function normalizeStatus(raw) {
+  const s = String(raw ?? '').toLowerCase().trim();
+  return STATUS_OPTIONS.find(o => o.v === s) ? s : '';
+}
+
+// ✅ FIX: normalisasi key cycle supaya cocok untuk customer_cycle_id / cycle_id, number/string
+function cycleKeyOf(c) {
+  return c?.customer_cycle_id ?? c?.cycle_id ?? c?.id ?? null;
+}
 
 /* ============================================================
    LOAD MASTER DROPDOWNS
@@ -427,7 +442,6 @@ $('btnProcessImport').addEventListener('click', async () => {
         toast(json.message, 'success');
         closePreviewModal();
 
-        // Refresh form jika sedang ada filter aktif
         if ($('fltDate').value && $('fltCustomer').value) {
             await loadDeliveries();
         }
@@ -462,7 +476,15 @@ async function loadDeliveries() {
 
     deliveriesByCycle = {};
     (json.data || []).forEach(d => {
-      deliveriesByCycle[d.customer_cycle_id] = d;
+      // ✅ FIX: index ganda (number & string) untuk customer_cycle_id / cycle_id
+      const key = cycleKeyOf(d);
+      if (key == null) return;
+      deliveriesByCycle[key]         = d;
+      deliveriesByCycle[String(key)] = d;
+
+      // simpan juga status ke cache supaya tidak hilang kalau render berikutnya
+      const st = normalizeStatus(d.status ?? d.delivery_status);
+      if (st) lastSavedStatus[key] = st;
     });
 
     renderCycles();
@@ -500,8 +522,6 @@ function renderCycles() {
 
   // Bind events
   wrap.querySelectorAll('.cycle-card').forEach(card => {
-    const cid = card.dataset.cycleId;
-
     // Add item
     card.querySelector('[data-act="add-item"]')?.addEventListener('click', () => {
         addItemRow(card, {});
@@ -522,7 +542,6 @@ function renderCycles() {
         });
     }
 
-    // ============ TAMBAHKAN INI ============
     // Vehicle dropdown → update vehicle_note
     const vehSel = card.querySelector('[data-role="vehicle_id"]');
     if (vehSel) {
@@ -539,17 +558,21 @@ function renderCycles() {
         hidden.value = label;
         });
     }
-    // ======================================
-    });
+  });
 }
 
 function renderCycleCard(cc) {
-  const existing = deliveriesByCycle[cc.id] || {};
-  const cycleNum = cc.cycle_number;
-  const status   = existing.status || 'waiting';
+  // ✅ FIX: lookup tahan terhadap perbedaan tipe/key
+  const existing = deliveriesByCycle[cc.id] || deliveriesByCycle[String(cc.id)] || {};
+
+  // ✅ FIX: prioritas status: dari server → cache save terakhir → default 'waiting'
+  const statusFromServer = normalizeStatus(existing.status ?? existing.delivery_status);
+  const statusFromCache  = normalizeStatus(lastSavedStatus[cc.id] ?? lastSavedStatus[String(cc.id)]);
+  const status    = statusFromServer || statusFromCache || 'waiting';
   const statusLbl = STATUS_OPTIONS.find(o => o.v === status)?.l || 'Waiting';
 
-  const existingItems = existing.items || [];
+  const existingItems = Array.isArray(existing.items) ? existing.items : [];
+  const cycleNum = cc.cycle_number;
 
   return `
     <div class="cycle-card" data-cycle-id="${cc.id}">
@@ -636,19 +659,25 @@ function renderCycleCard(cc) {
 }
 
 function renderItemRow(it) {
+  // ✅ FIX: normalisasi nama field item (server bisa pakai beberapa variasi)
+  const itemId  = it.item_id ?? it.ics_item_id ?? it.id ?? '';
+  const total   = it.total_delivery ?? it.total ?? 0;
+  const plan    = it.plan_delivery  ?? it.plan  ?? 0;
+  const actual  = it.actual_delivery?? it.actual?? 0;
+
   return `
     <tr>
       <td>
         <select class="select" data-role="item_id">
           <option value="">— Pilih ICS —</option>
-          ${items.map(m => `<option value="${m.id}" ${String(m.id)===String(it.item_id||'')?'selected':''}>
-            ${esc(m.ics_code)} — ${esc(m.ics_name)} - ${esc(m.part_number)}
+          ${items.map(m => `<option value="${m.id}" ${String(m.id)===String(itemId)?'selected':''}>
+            ${esc(m.ics_code || '')} — ${esc(m.ics_name || '')} - ${esc(m.part_number || '')}
           </option>`).join('')}
         </select>
       </td>
-      <td><input type="number" class="input sm" data-role="total_delivery" min="0" value="${it.total_delivery || 0}" /></td>
-      <td><input type="number" class="input sm" data-role="plan_delivery"  min="0" value="${it.plan_delivery  || 0}" /></td>
-      <td><input type="number" class="input sm" data-role="actual_delivery" min="0" value="${it.actual_delivery || 0}" /></td>
+      <td><input type="number" class="input sm" data-role="total_delivery" min="0" value="${total}" /></td>
+      <td><input type="number" class="input sm" data-role="plan_delivery"  min="0" value="${plan}" /></td>
+      <td><input type="number" class="input sm" data-role="actual_delivery" min="0" value="${actual}" /></td>
       <td style="text-align:center">
         <button type="button" class="btn btn-icon btn-sm danger" data-act="remove-item" title="Hapus">
           <i class="fa-solid fa-xmark"></i>
@@ -659,16 +688,14 @@ function renderItemRow(it) {
 }
 
 function addItemRow(card, data) {
+  // ✅ FIX: hapus nested <tr> yang bikin DOM invalid
   const tbody = card.querySelector('[data-role="items-body"]');
-  const tr = document.createElement('tr');
-  tr.innerHTML = renderItemRow(data).trim();
-  // replace tr outer? simpler: create wrapper
   const wrapper = document.createElement('tbody');
   wrapper.innerHTML = renderItemRow(data).trim();
   const newTr = wrapper.firstElementChild;
+  if (!newTr) return;
   tbody.appendChild(newTr);
-
-  newTr.querySelector('[data-act="remove-item"]').addEventListener('click', () => newTr.remove());
+  newTr.querySelector('[data-act="remove-item"]')?.addEventListener('click', () => newTr.remove());
 }
 
 /* ============================================================
@@ -739,8 +766,39 @@ async function saveAll() {
       toast(json.errors ? Object.values(json.errors)[0] : (json.message || 'Gagal'), 'error');
       return;
     }
+
+    // ✅ FIX: update cache status dari payload yang BARU disimpan
+    payload.cycles.forEach(c => {
+      const st = normalizeStatus(c.status);
+      if (st) lastSavedStatus[c.cycle_id] = st;
+    });
+
+    // ✅ FIX: sinkronkan state lokal dari payload (jangan bergantung penuh
+    // pada response GET yang bisa saja tidak lengkap / key-nya beda).
+    payload.cycles.forEach(c => {
+      const key = c.cycle_id;
+      const prev = deliveriesByCycle[key] || deliveriesByCycle[String(key)] || {};
+      const merged = {
+        ...prev,
+        customer_cycle_id: key,
+        status:            c.status,
+        vehicle_id:        c.vehicle_id,
+        vehicle_note:      c.vehicle_note,
+        actual_departure:  c.actual_departure,
+        actual_arrival:    c.actual_arrival,
+        notes:             c.notes,
+        items:             c.items.map(i => ({ ...i })),
+      };
+      deliveriesByCycle[key]         = merged;
+      deliveriesByCycle[String(key)] = merged;
+    });
+
     toast('Actual delivery tersimpan', 'success');
-    await loadDeliveries();
+
+    // ✅ FIX: render ulang dari state lokal, TIDAK memanggil loadDeliveries()
+    // yang sebelumnya menimpa status jadi 'waiting'.
+    renderCycles();
+
   } catch (e) {
     toast('Error: ' + e.message, 'error');
   } finally {
