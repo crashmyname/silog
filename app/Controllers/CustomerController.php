@@ -11,7 +11,7 @@ use Bpjs\Framework\Helpers\View;
 class CustomerController extends BaseController
 {
     // Controller logic here
-    private const MAX_CYCLE = 15;
+    private const MAX_CYCLE = 25;
 
     /* ============================================================
        HALAMAN UTAMA — GET /admin/customers
