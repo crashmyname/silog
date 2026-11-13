@@ -222,7 +222,7 @@ td .actions{display:flex;gap:5px;justify-content:flex-end}
 
 <script>
 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
-const MAX_CYCLE = 15;
+const MAX_CYCLE = 25;
 
 let customers = [];
 let editingId = null;
